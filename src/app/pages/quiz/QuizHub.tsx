@@ -1,12 +1,15 @@
 import { Link } from "react-router";
+import { useState } from "react";
 import {
   BrainCircuit,
   ArrowRight,
   Trophy,
   Layers,
+  Share2,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { ScrollReveal, FadeIn } from "../../components/shared";
+import { ShareLinkModal } from "../../components/quiz/ShareLinkModal";
 import { topicInfo } from "../../data/quiz-questions";
 import { useQuizHistory } from "../../hooks/useQuizHistory";
 
@@ -14,6 +17,7 @@ export function QuizHub() {
   const { getOverallPercentage, getTopicStats } = useQuizHistory();
   const overall = getOverallPercentage();
   const topicStats = getTopicStats();
+  const [shareTopic, setShareTopic] = useState<{ key: string; title: string } | null>(null);
 
   const topics = Object.entries(topicInfo).map(([key, info]) => {
     const stat = topicStats.find((s) => s.topic === key);
@@ -116,47 +120,53 @@ export function QuizHub() {
               {topics.map((topic, index) => {
                 return (
                   <ScrollReveal key={topic.key} delay={index * 0.1}>
-                    <Link
-                      to={topic.href}
-                      className="group block bg-card border border-border rounded-2xl p-6 sm:p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div
-                          className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${topic.gradient} shadow-sm flex items-center justify-center`}
-                        >
-                          <img src={topic.imageSrc} alt={topic.title} className="w-7 h-7 object-contain" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-heading text-lg font-bold text-foreground mb-1">
-                            {topic.title}
-                          </h3>
-                          <div className="flex items-center gap-2">
-                            {topic.percentage !== undefined ? (
-                              <>
-                                <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                                  {topic.percentage}%
+                    <div className="group block bg-card border border-border rounded-2xl p-6 sm:p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative">
+                      <Link to={topic.href} className="block">
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${topic.gradient} shadow-sm flex items-center justify-center`}
+                          >
+                            <img src={topic.imageSrc} alt={topic.title} className="w-7 h-7 object-contain" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-heading text-lg font-bold text-foreground mb-1">
+                              {topic.title}
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              {topic.percentage !== undefined ? (
+                                <>
+                                  <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                                    {topic.percentage}%
+                                  </span>
+                                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden max-w-[100px]">
+                                    <motion.div
+                                      initial={{ width: 0 }}
+                                      whileInView={{ width: `${topic.percentage}%` }}
+                                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+                                    />
+                                  </div>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">
+                                  Belum dikerjakan
                                 </span>
-                                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden max-w-[100px]">
-                                  <motion.div
-                                    initial={{ width: 0 }}
-                                    whileInView={{ width: `${topic.percentage}%` }}
-                                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
-                                  />
-                                </div>
-                              </>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">
-                                Belum dikerjakan
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-3 flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span>Mulai Quiz</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
+                              )}
+                            </div>
+                            <div className="mt-3 flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span>Mulai Quiz</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
+                      <button
+                        onClick={() => setShareTopic({ key: topic.key, title: topic.title })}
+                        className="absolute top-3 right-3 p-2 rounded-lg text-muted-foreground/60 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all opacity-0 group-hover:opacity-100"
+                        title="Bagikan"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </ScrollReveal>
                 );
               })}
@@ -164,6 +174,15 @@ export function QuizHub() {
           </div>
         </div>
       </div>
+
+      {shareTopic && (
+        <ShareLinkModal
+          open={!!shareTopic}
+          onClose={() => setShareTopic(null)}
+          title={shareTopic.title}
+          url={`${typeof window !== "undefined" ? window.location.origin : ""}/quiz/${shareTopic.key}`}
+        />
+      )}
     </div>
   );
 }
