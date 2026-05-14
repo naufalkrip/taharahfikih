@@ -241,8 +241,8 @@ export function Najis() {
       {/* Daftar Rujukan */}
       <RujukanSection
         rujukan={[
-          { title: "Al-Qur'an Al-Karim", sumber: "QS. Al-Muddatsir: 4", keterangan: "Perintah membersihkan pakaian dari najis." },
-          { title: "Al-Qur'an Al-Karim", sumber: "QS. Al-Anfal: 11", keterangan: "Air sebagai alat bersuci dan menghilangkan kotoran." },
+          { title: "Al-Qur'an Al-Karim", sumber: "QS. Al-Muddatsir: 4", keterangan: "Perintah membersihkan pakaian dari najis.", arabic: "وَثِيَابَكَ فَطَهِّرْ", translation: "Dan pakaianmu bersihkanlah." },
+          { title: "Al-Qur'an Al-Karim", sumber: "QS. Al-Anfal: 11", keterangan: "Air sebagai alat bersuci dan menghilangkan kotoran.", arabic: "إِذْ يُغَشِّيكُمُ النُّعَاسَ أَمَنَةً مِّنْهُ وَيُنَزِّلُ عَلَيْكُم مِّنَ السَّمَاءِ مَاءً لِّيُطَهِّرَكُم بِهِ وَيُذْهِبَ عَنكُمْ رِجْزَ الشَّيْطَانِ وَلِيَرْبِطَ عَلَىٰ قُلُوبِكُمْ وَيُثَبِّتَ بِهِ الْأَقْدَامَ", translation: "(Ingatlah) ketika Allah membuatmu mengantuk untuk memberikan ketenteraman dari-Nya, dan menurunkan air (hujan) dari langit kepadamu untuk menyucikanmu dengan (air) itu, dan menghilangkan gangguan-gangguan setan dari dirimu, dan menguatkan hatimu, serta meneguhkan telapak kakimu (pendirian) dengannya." },
           { title: "Shahih Al-Bukhari", sumber: "Kitab Al-Wudhu', No. 174-180", keterangan: "Hadits tentang air yang terkena najis dan cara mensucikannya." },
           { title: "Shahih Muslim", sumber: "Kitab Ath-Thaharah, No. 545-567", keterangan: "Hadits tentang najis anjing dan cara mensucikan (7x + tanah)." },
           { title: "Sunan Abu Dawud", sumber: "Kitab Ath-Thaharah, No. 33-41", keterangan: "Hadits tentang najis mukhaffafah (kencing bayi) dan cara membersihkannya." },

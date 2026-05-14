@@ -362,9 +362,13 @@ interface RujukanItem {
   title: string;
   sumber: string;
   keterangan: string;
+  arabic?: string;
+  translation?: string;
 }
 
 export function RujukanSection({ rujukan }: { rujukan: RujukanItem[] }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
   return (
     <ScrollReveal>
       <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
@@ -373,31 +377,70 @@ export function RujukanSection({ rujukan }: { rujukan: RujukanItem[] }) {
           <h2 className="text-foreground">Daftar Rujukan</h2>
         </div>
         <div className="space-y-3">
-          {rujukan.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -8 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className="flex gap-3 p-4 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors border border-border/50"
-            >
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mt-0.5">
-                <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-foreground text-sm sm:text-base mb-0.5">
-                  {item.title}
-                </h4>
-                <p className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">
-                  {item.sumber}
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  {item.keterangan}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+          {rujukan.map((item, i) => {
+            const isOpen = openIndex === i;
+            const hasAyat = !!item.arabic && !!item.translation;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -8 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : i)}
+                  className={`w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all border ${isOpen ? "bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-700/50" : "bg-muted/40 hover:bg-muted/60 border-border/50"}`}
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mt-0.5">
+                    <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <h4 className="font-semibold text-foreground text-sm sm:text-base mb-0.5">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">
+                      {item.sumber}
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      {item.keterangan}
+                    </p>
+                  </div>
+                  {hasAyat && (
+                    <motion.svg
+                      animate={{ rotate: isOpen ? 180 : 0 }}
+                      transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                      className="w-4.5 h-4.5 text-muted-foreground flex-shrink-0 mt-2"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                    </motion.svg>
+                  )}
+                </button>
+                {hasAyat && (
+                  <motion.div
+                    initial={false}
+                    animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+                    transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-4 pb-4 pt-2">
+                      <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-emerald-200/50 dark:border-emerald-700/30">
+                        <p className="text-right leading-loose text-lg sm:text-xl text-foreground mb-3 font-arabic" dir="rtl">
+                          {item.arabic}
+                        </p>
+                        <div className="border-t border-emerald-200/50 dark:border-emerald-700/30 pt-3">
+                          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed italic">
+                            "{item.translation}"
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </ScrollReveal>
