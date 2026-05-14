@@ -1,4 +1,5 @@
-import { Wind, Info, BookOpen, ListChecks, ShieldAlert, AlertCircle, Car, Plane, Snowflake, Clock, MapPin } from "lucide-react";
+import { Wind, Info, BookOpen, ListChecks, ShieldAlert, AlertCircle, Car, Plane, Snowflake, Clock, MapPin, BrainCircuit, ArrowRight } from "lucide-react";
+import { Link } from "react-router";
 import {
   SectionHeader,
   DalilBox,
@@ -55,7 +56,7 @@ export function Tayammum() {
     <div className="space-y-10">
       {/* Header */}
       <SectionHeader
-        icon={Wind}
+        imageSrc="/assets/tayamum.png"
         title="Tayammum"
         description="Tayammum adalah bersuci dengan menggunakan debu (tanah) suci sebagai pengganti air dalam kondisi-kondisi tertentu yang dibenarkan syariat."
       />
@@ -196,6 +197,25 @@ export function Tayammum() {
           </li>
         </ul>
       </InfoBox>
+
+      {/* Quiz Button */}
+      <ScrollReveal>
+        <Link
+          to="/quiz/tayammum"
+          className="group block bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-6 sm:p-8 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <div className="flex items-center gap-5">
+            <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center border border-white/30">
+              <img src="/assets/quiz.png" alt="Quiz" className="w-8 h-8 object-contain" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold mb-1">Quiz Tayammum</h3>
+              <p className="text-sm text-white/80">Uji pemahaman Anda tentang materi tayammum</p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
+          </div>
+        </Link>
+      </ScrollReveal>
     </div>
   );
 }

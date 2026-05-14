@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Droplets, Sparkles, Wind, Trash2, BookOpen, ArrowRight } from "lucide-react";
+import { Droplets, BookOpen, ArrowRight, BrainCircuit } from "lucide-react";
 import { motion } from "motion/react";
 import { ScrollReveal, FadeIn } from "../components/shared";
 
@@ -8,7 +8,7 @@ export function Home() {
     {
       title: "Wudhu",
       description: "Pelajari tata cara berwudhu, syarat, rukun, dan hal-hal yang membatalkan wudhu.",
-      icon: Droplets,
+      imageSrc: "/assets/wudhu.png",
       gradient: "from-blue-500 to-cyan-500",
       bgLight: "bg-blue-50 dark:bg-blue-950/30",
       borderHover: "group-hover:border-blue-300 dark:group-hover:border-blue-700",
@@ -17,7 +17,7 @@ export function Home() {
     {
       title: "Mandi Wajib",
       description: "Memahami hukum, tata cara, dan hal-hal yang mewajibkan mandi (ghusl).",
-      icon: Sparkles,
+      imageSrc: "/assets/mandi.png",
       gradient: "from-emerald-500 to-teal-500",
       bgLight: "bg-emerald-50 dark:bg-emerald-950/30",
       borderHover: "group-hover:border-emerald-300 dark:group-hover:border-emerald-700",
@@ -26,7 +26,7 @@ export function Home() {
     {
       title: "Tayammum",
       description: "Bersuci dengan debu sebagai pengganti air dalam kondisi tertentu.",
-      icon: Wind,
+      imageSrc: "/assets/tayamum.png",
       gradient: "from-amber-500 to-orange-500",
       bgLight: "bg-amber-50 dark:bg-amber-950/30",
       borderHover: "group-hover:border-amber-300 dark:group-hover:border-amber-700",
@@ -35,7 +35,7 @@ export function Home() {
     {
       title: "Najis & Bersuci",
       description: "Mengenal jenis-jenis najis dan cara mensucikannya menurut syariat Islam.",
-      icon: Trash2,
+      imageSrc: "/assets/najis.png",
       gradient: "from-red-500 to-rose-500",
       bgLight: "bg-red-50 dark:bg-red-950/30",
       borderHover: "group-hover:border-red-300 dark:group-hover:border-red-700",
@@ -147,7 +147,6 @@ export function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {topics.map((topic, index) => {
-            const Icon = topic.icon;
             return (
               <ScrollReveal key={topic.title} delay={index * 0.1}>
                 <Link
@@ -157,7 +156,7 @@ export function Home() {
                   <div
                     className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${topic.gradient} shadow-sm mb-4`}
                   >
-                    <Icon className="w-6 h-6 text-white" />
+                    <img src={topic.imageSrc} alt={topic.title} className="w-7 h-7 object-contain" />
                   </div>
                   <h3 className="font-heading text-xl font-bold text-foreground mb-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
                     {topic.title}
@@ -175,6 +174,35 @@ export function Home() {
           })}
         </div>
       </div>
+
+      {/* Quiz Section */}
+      <ScrollReveal>
+        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 sm:p-8 lg:p-10 text-white shadow-lg">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/3" />
+          <div className="relative flex flex-col sm:flex-row items-center gap-6">
+            <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center border border-white/30">
+              <BrainCircuit className="w-8 h-8 text-white" />
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">
+                Uji Pemahaman Anda
+              </h2>
+              <p className="text-sm sm:text-base text-white/80 leading-relaxed">
+                Ikuti quiz interaktif untuk mengukur pemahaman Anda tentang fikih
+                taharah. Dapatkan skor dan lihat hasil belajar Anda!
+              </p>
+            </div>
+            <Link
+              to="/quiz"
+              className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-emerald-700 font-medium text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+            >
+              Mulai Quiz
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </ScrollReveal>
 
       {/* Note */}
       <ScrollReveal>

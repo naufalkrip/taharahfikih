@@ -205,17 +205,22 @@ export function ChecklistItem({ children, color = "emerald" }: ChecklistItemProp
 }
 
 interface SectionHeaderProps {
-  icon: ElementType;
+  icon?: ElementType;
   title: string;
   description?: string;
+  imageSrc?: string;
 }
 
-export function SectionHeader({ icon: Icon, title, description }: SectionHeaderProps) {
+export function SectionHeader({ icon: Icon, title, description, imageSrc }: SectionHeaderProps) {
   return (
     <FadeIn>
       <div className="text-center space-y-4 mb-10">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 shadow-sm">
-          <Icon className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+          {imageSrc ? (
+            <img src={imageSrc} alt={title} className="w-9 h-9 object-contain" />
+          ) : Icon ? (
+            <Icon className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+          ) : null}
         </div>
         <h1 className="text-foreground">{title}</h1>
         {description && (

@@ -1,0 +1,169 @@
+import { Link } from "react-router";
+import {
+  BrainCircuit,
+  ArrowRight,
+  Trophy,
+  Layers,
+} from "lucide-react";
+import { motion } from "motion/react";
+import { ScrollReveal, FadeIn } from "../../components/shared";
+import { topicInfo } from "../../data/quiz-questions";
+import { useQuizHistory } from "../../hooks/useQuizHistory";
+
+export function QuizHub() {
+  const { getOverallPercentage, getTopicStats } = useQuizHistory();
+  const overall = getOverallPercentage();
+  const topicStats = getTopicStats();
+
+  const topics = Object.entries(topicInfo).map(([key, info]) => {
+    const stat = topicStats.find((s) => s.topic === key);
+    return {
+      key,
+      ...info,
+      href: `/quiz/${key}`,
+      percentage: stat?.percentage,
+    };
+  });
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="space-y-10">
+          {/* Header */}
+          <FadeIn>
+            <div className="text-center space-y-4">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="inline-flex items-center justify-center"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30">
+                  <img src="/assets/quiz.png" alt="Quiz" className="w-9 h-9 object-contain" />
+                </div>
+              </motion.div>
+              <h1 className="text-foreground">Quiz Interaktif</h1>
+              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                Uji pemahaman Anda tentang fikih taharah melalui quiz interaktif.
+                Pilih materi yang ingin diuji.
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* Overall Score */}
+          {overall > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 sm:p-8 text-white shadow-lg"
+            >
+              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
+              <div className="relative flex items-center gap-5">
+                <div className="flex-shrink-0 w-20 h-20 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
+                  <span className="text-2xl font-extrabold">{overall}%</span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Trophy className="w-5 h-5" />
+                    <h3 className="text-lg font-bold">Nilai Keseluruhan</h3>
+                  </div>
+                  <p className="text-sm text-white/80 leading-relaxed">
+                    Rata-rata dari semua quiz yang telah dikerjakan
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* All Materials Card */}
+          <ScrollReveal>
+            <Link
+              to="/quiz/all"
+              className="group block bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-6 sm:p-7 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            >
+              <div className="flex items-center gap-5">
+                <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center border border-white/30">
+                  <Layers className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading text-lg font-bold mb-1">
+                    Semua Materi
+                  </h3>
+                  <p className="text-sm text-white/80 leading-relaxed">
+                    Quiz gabungan dari seluruh materi (Wudhu, Mandi Wajib, Tayammum, Najis)
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-white/60 group-hover:text-white transition-colors">
+                  <span>Mulai</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
+          </ScrollReveal>
+
+          {/* Topics Grid */}
+          <div>
+            <ScrollReveal>
+              <div className="text-center mb-6">
+                <h2 className="text-foreground">Pilih Per Materi</h2>
+                <p className="text-muted-foreground text-sm sm:text-base mt-2">
+                  Atau pilih quiz per materi tertentu
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {topics.map((topic, index) => {
+                return (
+                  <ScrollReveal key={topic.key} delay={index * 0.1}>
+                    <Link
+                      to={topic.href}
+                      className="group block bg-card border border-border rounded-2xl p-6 sm:p-7 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${topic.gradient} shadow-sm flex items-center justify-center`}
+                        >
+                          <img src={topic.imageSrc} alt={topic.title} className="w-7 h-7 object-contain" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-heading text-lg font-bold text-foreground mb-1">
+                            {topic.title}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            {topic.percentage !== undefined ? (
+                              <>
+                                <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                                  {topic.percentage}%
+                                </span>
+                                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden max-w-[100px]">
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    whileInView={{ width: `${topic.percentage}%` }}
+                                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+                                  />
+                                </div>
+                              </>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                Belum dikerjakan
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-3 flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span>Mulai Quiz</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </ScrollReveal>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

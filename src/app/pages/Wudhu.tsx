@@ -1,4 +1,5 @@
-import { Droplets, CheckCircle2, XCircle, AlertCircle, BookOpen, ListChecks, ShieldAlert, HeartPulse, Hand, Wind, PaintBucket } from "lucide-react";
+import { Droplets, CheckCircle2, XCircle, AlertCircle, BookOpen, ListChecks, ShieldAlert, HeartPulse, Hand, Wind, PaintBucket, BrainCircuit, ArrowRight } from "lucide-react";
+import { Link } from "react-router";
 import {
   SectionHeader,
   DalilBox,
@@ -54,7 +55,7 @@ export function Wudhu() {
     <div className="space-y-10">
       {/* Header */}
       <SectionHeader
-        icon={Droplets}
+        imageSrc="/assets/wudhu.png"
         title="Wudhu"
         description="Wudhu adalah bersuci dari hadas kecil dengan menggunakan air pada anggota tubuh tertentu dengan cara dan syarat yang telah ditentukan."
       />
@@ -163,6 +164,25 @@ export function Wudhu() {
             </div>
           </div>
         </div>
+      </ScrollReveal>
+
+      {/* Quiz Button */}
+      <ScrollReveal>
+        <Link
+          to="/quiz/wudhu"
+          className="group block bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-6 sm:p-8 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <div className="flex items-center gap-5">
+            <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center border border-white/30">
+              <img src="/assets/quiz.png" alt="Quiz" className="w-8 h-8 object-contain" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold mb-1">Quiz Wudhu</h3>
+              <p className="text-sm text-white/80">Uji pemahaman Anda tentang materi wudhu</p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
+          </div>
+        </Link>
       </ScrollReveal>
     </div>
   );

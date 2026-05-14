@@ -1,4 +1,5 @@
-import { Trash2, Droplets, BookOpen, ListChecks, ShieldAlert, CheckCircle2, AlertCircle, Smartphone, Shirt, Layout, Eye } from "lucide-react";
+import { Trash2, Droplets, BookOpen, ListChecks, ShieldAlert, CheckCircle2, AlertCircle, Smartphone, Shirt, Layout, Eye, BrainCircuit, ArrowRight } from "lucide-react";
+import { Link } from "react-router";
 import {
   SectionHeader,
   DalilBox,
@@ -90,7 +91,7 @@ export function Najis() {
     <div className="space-y-10">
       {/* Header */}
       <SectionHeader
-        icon={Trash2}
+        imageSrc="/assets/najis.png"
         title="Najis & Bersuci"
         description="Najis adalah sesuatu yang kotor menurut syara' yang wajib dibersihkan dan dihindari dalam beribadah. Memahami najis dan cara mensucikannya sangat penting dalam kehidupan sehari-hari."
       />
@@ -261,6 +262,25 @@ export function Najis() {
           <ChecklistItem>Khusus najis anjing, pastikan mencuci 7 kali dan salah satunya dengan tanah</ChecklistItem>
         </ul>
       </InfoBox>
+
+      {/* Quiz Button */}
+      <ScrollReveal>
+        <Link
+          to="/quiz/najis"
+          className="group block bg-gradient-to-br from-red-500 to-rose-500 rounded-2xl p-6 sm:p-8 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <div className="flex items-center gap-5">
+            <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center border border-white/30">
+              <img src="/assets/quiz.png" alt="Quiz" className="w-8 h-8 object-contain" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold mb-1">Quiz Najis & Bersuci</h3>
+              <p className="text-sm text-white/80">Uji pemahaman Anda tentang materi najis dan bersuci</p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
+          </div>
+        </Link>
+      </ScrollReveal>
     </div>
   );
 }
