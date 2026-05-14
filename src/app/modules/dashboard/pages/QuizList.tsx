@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Copy, Eye, Trash2, ToggleLeft, ToggleRight, Loader2, ExternalLink } from "lucide-react";
+import { Eye, Trash2, ToggleLeft, ToggleRight, Loader2, ExternalLink, Share2 } from "lucide-react";
 import { getMyQuizzes, deleteQuiz, toggleQuizStatus } from "../../quiz/services/quiz.service";
 import type { Quiz } from "../../quiz/services/quiz.service";
 import { formatDate } from "../../../lib/utils";
+import { ShareLinkModal } from "../../../components/quiz/ShareLinkModal";
 
 export function QuizList() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shareQuiz, setShareQuiz] = useState<{ slug: string; title: string } | null>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -27,10 +29,6 @@ export function QuizList() {
   const handleToggle = async (id: string, current: boolean) => {
     await toggleQuizStatus(id, !current);
     load();
-  };
-
-  const copyLink = (slug: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/s/${slug}`);
   };
 
   if (loading) {
@@ -96,11 +94,11 @@ export function QuizList() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => copyLink(q.slug)}
-                          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                          title="Salin link"
+                          onClick={() => setShareQuiz({ slug: q.slug, title: q.title })}
+                          className="p-2 rounded-lg text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+                          title="Bagikan"
                         >
-                          <Copy className="w-4 h-4" />
+                          <Share2 className="w-4 h-4" />
                         </button>
                         <a
                           href={`/s/${q.slug}`}
@@ -125,6 +123,15 @@ export function QuizList() {
             </table>
           </div>
         </div>
+      )}
+
+      {shareQuiz && (
+        <ShareLinkModal
+          open={!!shareQuiz}
+          onClose={() => setShareQuiz(null)}
+          title={shareQuiz.title}
+          url={`${window.location.origin}/s/${shareQuiz.slug}`}
+        />
       )}
     </div>
   );
