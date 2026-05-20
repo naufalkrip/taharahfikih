@@ -29,7 +29,7 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  const shareText = `🏆 Quiz Hukum Taharah\n📚 ${result.topicTitle}: ${result.score}/${result.total} (${result.percentage}%)\n🕌 Saya mendapatkan skor ${result.percentage}% pada Quiz Hukum Taharah! Coba di: ${typeof window !== "undefined" ? window.location.origin : ""}/quiz`;
+  const shareText = `🏆 Quiz THAVA\n📚 ${result.topicTitle}: ${result.score}/${result.total} (${result.percentage}%)\n🕌 Saya mendapatkan skor ${result.percentage}% pada Quiz THAVA! Coba di: ${typeof window !== "undefined" ? window.location.origin : ""}/quiz`;
 
   const shareUrl =
     typeof window !== "undefined" ? window.location.origin + "/quiz" : "";

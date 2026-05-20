@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
-import { ArrowLeft, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Loader2, FileDown, Share2, X } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { getAttemptDetail } from "../../quiz/services/quiz.service";
+import { generateQuizPDF } from "../../../utils/generateQuizPDF";
 
 export function StudentDetail() {
   const { id } = useParams();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showActions, setShowActions] = useState(false);
 
   useEffect(() => {
     if (!id) return;
+    setLoading(true);
     getAttemptDetail(id).then((d) => {
       setData(d);
+      setLoading(false);
+    }).catch(() => {
+      setError("Gagal memuat data");
       setLoading(false);
     });
   }, [id]);
@@ -20,6 +28,15 @@ export function StudentDetail() {
     return (
       <div className="flex items-center justify-center h-40">
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-muted-foreground">{error}</p>
+        <Link to="/dashboard/results" className="text-primary text-sm">Kembali</Link>
       </div>
     );
   }
@@ -33,7 +50,7 @@ export function StudentDetail() {
     );
   }
 
-  const { session, answers } = data;
+  const { attempt: session, answers } = data;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -66,6 +83,17 @@ export function StudentDetail() {
             <p className="text-sm font-semibold text-emerald-600">Selesai</p>
           </div>
         </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        <button
+          onClick={() => setShowActions(true)}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-medium hover:shadow-lg transition-all duration-200"
+        >
+          <FileDown className="w-4 h-4" />
+          Download & Bagikan
+        </button>
       </div>
 
       {/* Answers */}
@@ -115,6 +143,86 @@ export function StudentDetail() {
           </div>
         ))}
       </div>
+
+      {/* Popup Modal */}
+      <AnimatePresence>
+        {showActions && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowActions(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-foreground">Download & Bagikan</h3>
+                <button
+                  onClick={() => setShowActions(false)}
+                  className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs text-muted-foreground mb-5">
+                {session.student_name} — {Math.round(Number(session.percentage))}%
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    generateQuizPDF(
+                      session.student_name,
+                      session.student_number,
+                      session.student_class,
+                      session.score,
+                      session.total_questions,
+                      session.percentage,
+                      answers,
+                    );
+                    setShowActions(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border hover:bg-muted/50 transition-all duration-200"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                    <FileDown className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-foreground">Download PDF</p>
+                    <p className="text-xs text-muted-foreground">Simpan hasil sebagai file PDF</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const origin = typeof window !== "undefined" ? window.location.origin : "";
+                    const text = `Detail Hasil Quiz Murid\nNama: ${session.student_name}\nKelas: ${session.student_class || "-"}\nNilai: ${Math.round(Number(session.percentage))}% (${session.score}/${session.total_questions})\n${origin}/dashboard/results/${id}`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+                    setShowActions(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border hover:bg-muted/50 transition-all duration-200"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#25D366] flex items-center justify-center flex-shrink-0">
+                    <Share2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-foreground">Share WhatsApp</p>
+                    <p className="text-xs text-muted-foreground">Bagikan hasil via WhatsApp</p>
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

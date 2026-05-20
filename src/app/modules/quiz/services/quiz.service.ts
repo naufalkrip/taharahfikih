@@ -1,7 +1,7 @@
 import { supabase } from "../../../lib/supabase";
 import { generateSlug } from "../../../lib/utils";
 import type { QuizQuestion } from "../../../data/quiz-questions";
-import { getSession } from "../../auth/services/auth.service";
+import { getSession, clearSession } from "../../auth/services/auth.service";
 
 export interface Quiz {
   id: string;
@@ -9,6 +9,7 @@ export interface Quiz {
   slug: string;
   title: string;
   topic: string;
+  category: string;
   description: string;
   time_limit: number;
   is_active: boolean;
@@ -41,6 +42,7 @@ export interface StudentAttempt {
 export async function createQuiz(data: {
   title: string;
   topic: string;
+  category: string;
   description: string;
   time_limit: number;
   shuffle_questions: boolean;
@@ -48,6 +50,18 @@ export async function createQuiz(data: {
 }) {
   const user = getSession();
   if (!user) throw new Error("Not authenticated");
+
+  // Verifikasi user masih ada di database
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!dbUser) {
+    clearSession();
+    throw new Error("Sesi tidak valid. Silakan login ulang.");
+  }
 
   const slug = generateSlug();
   const { data: quiz, error: quizError } = await supabase
@@ -57,6 +71,7 @@ export async function createQuiz(data: {
       slug,
       title: data.title,
       topic: data.topic,
+      category: data.category,
       description: data.description,
       time_limit: data.time_limit,
       shuffle_questions: data.shuffle_questions,
@@ -177,6 +192,16 @@ export async function submitStudentAttempt(data: {
   return attempt;
 }
 
+export async function getQuizQuestions(quizId: string) {
+  const { data } = await supabase
+    .from("questions")
+    .select("*")
+    .eq("quiz_id", quizId)
+    .order("created_at");
+
+  return data ?? [];
+}
+
 export async function getQuizAttempts(quizId: string): Promise<StudentAttempt[]> {
   const { data } = await supabase
     .from("student_attempts")
@@ -210,9 +235,46 @@ export async function getAllTeacherAttempts() {
 
   const { data } = await supabase
     .from("student_attempts")
-    .select("*, quizzes!inner(title, topic, user_id)")
+    .select("*, quizzes!inner(title, topic, category, user_id)")
     .eq("quizzes.user_id", user.id)
     .order("created_at", { ascending: false });
 
   return data ?? [];
+}
+
+export async function deleteAttempt(attemptId: string): Promise<void> {
+  await supabase.from("student_attempts").delete().eq("id", attemptId);
+}
+
+export async function checkExistingAttempt(
+  quizId: string,
+  studentName: string,
+  studentNumber: string,
+  studentClass: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("student_attempts")
+    .select("id")
+    .eq("quiz_id", quizId)
+    .eq("student_name", studentName)
+    .eq("student_number", studentNumber)
+    .eq("student_class", studentClass)
+    .maybeSingle();
+
+  return !!data;
+}
+
+export async function getQuizCategories(): Promise<string[]> {
+  const user = getSession();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("quizzes")
+    .select("category")
+    .eq("user_id", user.id)
+    .neq("category", "")
+    .order("category");
+
+  const unique = [...new Set((data ?? []).map((d) => d.category).filter(Boolean))];
+  return unique;
 }

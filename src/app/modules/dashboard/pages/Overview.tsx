@@ -57,7 +57,7 @@ export function DashboardOverview() {
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Selamat datang di dashboard pembelajaran Hukum Taharah
+          Selamat datang di dashboard pembelajaran THAVA (Taharah Virtual Academy)
         </p>
       </div>
 

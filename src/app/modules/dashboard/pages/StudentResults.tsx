@@ -1,38 +1,83 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router";
-import { Search, Loader2, Eye } from "lucide-react";
-import { getAllTeacherAttempts } from "../../quiz/services/quiz.service";
-import { formatDate, formatTime } from "../../../lib/utils";
+import { Search, Loader2, Eye, ChevronDown, ChevronRight, BookOpen, Users, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { getMyQuizzes, getAllTeacherAttempts, deleteAttempt } from "../../quiz/services/quiz.service";
+import type { Quiz } from "../../quiz/services/quiz.service";
+import { formatTime, formatDate } from "../../../lib/utils";
 
 export function StudentResults() {
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [attempts, setAttempts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filterClass, setFilterClass] = useState("");
+  const [expandedQuiz, setExpandedQuiz] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    Promise.all([getMyQuizzes(), getAllTeacherAttempts()]).then(
+      ([q, a]) => {
+        setQuizzes(q);
+        setAttempts(a);
+        setLoading(false);
+      },
+    );
+  }, []);
 
-  const load = async () => {
-    setLoading(true);
-    const data = await getAllTeacherAttempts();
-    setSessions(data);
-    setLoading(false);
+  const categories = useMemo(() => {
+    const map: Record<string, Quiz[]> = {};
+    for (const q of quizzes) {
+      const cat = q.category || "Tanpa Kelas";
+      if (!map[cat]) map[cat] = [];
+      map[cat].push(q);
+    }
+    return map;
+  }, [quizzes]);
+
+  const attemptsByQuiz = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    for (const a of attempts) {
+      const qid = a.quiz_id;
+      if (!map[qid]) map[qid] = [];
+      map[qid].push(a);
+    }
+    return map;
+  }, [attempts]);
+
+  const toggleQuiz = (quizId: string) => {
+    setExpandedQuiz((prev) => (prev === quizId ? null : quizId));
   };
-
-  const filtered = sessions.filter((s) => {
-    const name = s.student_name?.toLowerCase().includes(search.toLowerCase());
-    const num = s.student_number?.includes(search);
-    const cls = !filterClass || s.student_class === filterClass;
-    return (name || num) && cls;
-  });
-
-  const classes = [...new Set(sessions.map((s) => s.student_class).filter(Boolean))];
 
   const getScoreColor = (pct: number) => {
     if (pct >= 85) return "text-emerald-600";
     if (pct >= 70) return "text-blue-600";
     if (pct >= 50) return "text-amber-600";
     return "text-red-500";
+  };
+
+  const avgScore = (items: any[]) => {
+    const total = items.reduce((s, a) => s + Number(a.percentage), 0);
+    return items.length > 0 ? Math.round(total / items.length) : 0;
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    try {
+      await deleteAttempt(confirmDelete);
+      setAttempts((prev) => prev.filter((a) => a.id !== confirmDelete));
+    } catch (err) {
+      console.error("Gagal menghapus", err);
+    }
+    setDeleting(false);
+    setConfirmDelete(null);
+  };
+
+  const sortedAttempts = (quizAttempts: any[]) => {
+    return [...quizAttempts].sort(
+      (a, b) => (a.student_name || "").localeCompare(b.student_name || ""),
+    );
   };
 
   if (loading) {
@@ -44,94 +89,213 @@ export function StudentResults() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Hasil Murid</h1>
-        <p className="text-sm text-muted-foreground mt-1">Pantau hasil belajar murid</p>
+        <p className="text-sm text-muted-foreground mt-1">Pantau hasil belajar murid per kelas dan per quiz</p>
       </div>
 
-      {sessions.length === 0 ? (
+      {quizzes.length === 0 ? (
         <div className="bg-card border border-border rounded-2xl p-10 text-center">
-          <p className="text-muted-foreground text-sm">Belum ada hasil quiz dari murid</p>
+          <p className="text-muted-foreground text-sm">Belum ada quiz yang dibuat</p>
         </div>
       ) : (
         <>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari nama atau nomor..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-            {classes.length > 0 && (
-              <select
-                value={filterClass}
-                onChange={(e) => setFilterClass(e.target.value)}
-                className="px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                <option value="">Semua Kelas</option>
-                {classes.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            )}
+          {/* Search */}
+          <div className="relative max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari quiz atau nama siswa..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
           </div>
 
-          {/* Table */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Nama</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground hidden sm:table-cell">Kelas</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground hidden sm:table-cell">Quiz</th>
-                    <th className="text-center px-4 py-3 font-semibold text-foreground">Nilai</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground hidden md:table-cell">Waktu</th>
-                    <th className="text-right px-4 py-3 font-semibold text-foreground">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((s) => (
-                    <tr key={s.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-foreground">{s.student_name}</p>
-                        {s.student_number && (
-                          <p className="text-xs text-muted-foreground">No. {s.student_number}</p>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.student_class || "-"}</td>
-                      <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell max-w-[120px] truncate">
-                        {s.quizzes?.title ?? "-"}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-lg font-bold ${getScoreColor(Number(s.percentage))}`}>
-                          {Math.round(Number(s.percentage))}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground hidden md:table-cell">
-                        {formatTime(s.time_spent)}<br />
-                        <span>{formatDate(s.created_at)}</span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link
-                          to={`/dashboard/results/${s.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+          {/* Grouped by Category */}
+          {Object.entries(categories).map(([category, catQuizzes]) => {
+            const filtered = catQuizzes.filter((q) =>
+              q.title.toLowerCase().includes(search.toLowerCase()),
+            );
+            if (filtered.length === 0) return null;
+
+            return (
+              <section key={category}>
+                <h2 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  {category}
+                </h2>
+                <div className="space-y-2">
+                  {filtered.map((quiz) => {
+                    const quizAttempts = attemptsByQuiz[quiz.id] || [];
+                    const isOpen = expandedQuiz === quiz.id;
+                    const sorted = sortedAttempts(quizAttempts);
+                    const filteredSorted = sorted.filter((a) => {
+                      if (!search) return true;
+                      return a.student_name?.toLowerCase().includes(search.toLowerCase());
+                    });
+
+                    return (
+                      <div
+                        key={quiz.id}
+                        className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm"
+                      >
+                        {/* Quiz Header */}
+                        <button
+                          onClick={() => toggleQuiz(quiz.id)}
+                          className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/20 transition-colors"
                         >
-                          <Eye className="w-3 h-3" />
-                          Detail
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                            <BookOpen className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">
+                              {quiz.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {quizAttempts.length} siswa · Rata-rata {avgScore(quizAttempts)}%
+                              {quiz.topic && ` · ${quiz.topic}`}
+                            </p>
+                          </div>
+                          {isOpen ? (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          )}
+                        </button>
+
+                        {/* Student Table */}
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                              className="overflow-hidden"
+                            >
+                              {filteredSorted.length === 0 ? (
+                                <div className="px-5 pb-4 text-xs text-muted-foreground">
+                                  Belum ada siswa yang mengerjakan quiz ini
+                                </div>
+                              ) : (
+                                <div className="overflow-x-auto px-5 pb-4">
+                                  <table className="w-full text-sm">
+                                    <thead>
+                                      <tr className="border-b border-border">
+                                        <th className="text-left py-2 pr-3 font-semibold text-foreground text-xs">#</th>
+                                        <th className="text-left py-2 pr-3 font-semibold text-foreground text-xs">Nama</th>
+                                        <th className="text-left py-2 pr-3 font-semibold text-foreground text-xs hidden sm:table-cell">No</th>
+                                        <th className="text-left py-2 pr-3 font-semibold text-foreground text-xs hidden sm:table-cell">Kelas</th>
+                                        <th className="text-center py-2 pr-3 font-semibold text-foreground text-xs">Nilai</th>
+                                        <th className="text-left py-2 font-semibold text-foreground text-xs">Waktu</th>
+                                        <th className="text-right py-2 font-semibold text-foreground text-xs">Aksi</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {filteredSorted.map((a, i) => (
+                                        <tr
+                                          key={a.id}
+                                          className="border-b border-border/50 hover:bg-muted/20 transition-colors"
+                                        >
+                                          <td className="py-2.5 pr-3 text-muted-foreground text-xs">{i + 1}</td>
+                                          <td className="py-2.5 pr-3">
+                                            <p className="font-medium text-foreground text-sm">{a.student_name}</p>
+                                          </td>
+                                          <td className="py-2.5 pr-3 text-muted-foreground text-xs hidden sm:table-cell">
+                                            {a.student_number || "-"}
+                                          </td>
+                                          <td className="py-2.5 pr-3 text-muted-foreground text-xs hidden sm:table-cell">
+                                            {a.student_class || "-"}
+                                          </td>
+                                          <td className="py-2.5 pr-3 text-center">
+                                            <span className={`text-sm font-bold ${getScoreColor(Number(a.percentage))}`}>
+                                              {Math.round(Number(a.percentage))}%
+                                            </span>
+                                          </td>
+                                          <td className="py-2.5 pr-3 text-muted-foreground text-xs">
+                                            {formatTime(a.time_spent)}
+                                          </td>
+                                          <td className="py-2.5 text-right">
+                                            <div className="flex items-center justify-end gap-1">
+                                              <Link
+                                                to={`/dashboard/results/${a.id}`}
+                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                                              >
+                                                <Eye className="w-3 h-3" />
+                                                Detail
+                                              </Link>
+                                              <button
+                                                onClick={() => setConfirmDelete(a.id)}
+                                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                                                title="Hapus"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
         </>
       )}
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            onClick={() => !deleting && setConfirmDelete(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-sm font-semibold text-foreground mb-2">Hapus Data Murid</h3>
+              <p className="text-xs text-muted-foreground mb-5">
+                Apakah kamu yakin ingin menghapus data murid ini? Tindakan ini tidak dapat dibatalkan.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 disabled:opacity-40 transition-colors inline-flex items-center gap-2"
+                >
+                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  {deleting ? "Menghapus..." : "Hapus"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

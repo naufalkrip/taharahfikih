@@ -21,7 +21,7 @@ export function ShareResults() {
 
   const shareWA = (slug: string) => {
     const link = `${window.location.origin}/s/${slug}`;
-    const text = `Quiz Hukum Taharah\nKerjakan quiz berikut:\n${link}`;
+    const text = `Quiz THAVA\nKerjakan quiz berikut:\n${link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 

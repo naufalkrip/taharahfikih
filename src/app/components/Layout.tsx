@@ -104,9 +104,12 @@ export function Layout() {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                 <Droplets className="w-5 h-5 text-white" />
               </div>
-              <span className="font-heading font-bold text-lg text-foreground">
-                {t("logo.prefix")}<span className="text-emerald-600 dark:text-emerald-400">{t("logo.suffix")}</span>
-              </span>
+              <div className="flex flex-col">
+                <span className="font-heading font-bold text-lg text-foreground leading-tight">
+                  TH<span className="text-emerald-600 dark:text-emerald-400">AVA</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground leading-tight">Taharah Virtual Academy</span>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
@@ -268,7 +271,7 @@ export function Layout() {
               {t("footer.desc")}
             </p>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span>© {new Date().getFullYear()} Hukum Taharah</span>
+              <span>© {new Date().getFullYear()} THAVA</span>
               <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
               <span>{t("footer.tagline")}</span>
             </div>

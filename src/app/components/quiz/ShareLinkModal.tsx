@@ -36,7 +36,7 @@ const shareLinks = [
 export function ShareLinkModal({ open, onClose, title, url }: ShareLinkModalProps) {
   const [copiedLink, setCopiedLink] = useState(false);
 
-  const fullText = `Quiz ${title} — Hukum Taharah\n${url}\n\nUji pemahaman tentang fikih taharah!`;
+  const fullText = `Quiz ${title} — THAVA\n${url}\n\nUji pemahaman tentang fikih taharah!`;
 
   const handleCopyLink = async () => {
     try {

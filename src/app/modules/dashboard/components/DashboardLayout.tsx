@@ -6,7 +6,6 @@ import {
   ListChecks,
   Users,
   FileText,
-  Share2,
   Settings,
   LogOut,
   ChevronLeft,
@@ -22,8 +21,8 @@ const navItems = [
   { name: "Buat Soal", href: "/dashboard/create", icon: PlusCircle },
   { name: "Daftar Soal", href: "/dashboard/quizzes", icon: ListChecks },
   { name: "Hasil Murid", href: "/dashboard/results", icon: Users },
-  { name: "Export PDF", href: "/dashboard/export", icon: FileText },
-  { name: "Share Hasil", href: "/dashboard/share", icon: Share2 },
+  { name: "Daftar Nilai", href: "/dashboard/export", icon: FileText },
+
   { name: "Pengaturan", href: "/dashboard/settings", icon: Settings },
 ];
 
@@ -50,9 +49,12 @@ export function DashboardLayout() {
           <Droplets className="w-4 h-4 text-white" />
         </div>
         {!collapsed && (
-          <span className="font-heading font-bold text-sm text-foreground truncate">
-            Hukum Taharah
-          </span>
+          <div className="flex flex-col">
+            <span className="font-heading font-bold text-sm text-foreground truncate leading-tight">
+              THAVA
+            </span>
+            <span className="text-[9px] text-muted-foreground truncate leading-tight">Taharah Virtual Academy</span>
+          </div>
         )}
       </div>
 

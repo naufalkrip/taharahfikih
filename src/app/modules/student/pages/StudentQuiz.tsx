@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router";
-import { ArrowLeft, Loader2, CheckCircle2, Clock, User, Hash, GraduationCap } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Clock, User, GraduationCap, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { getQuizBySlug, submitStudentAttempt } from "../../quiz/services/quiz.service";
+import { getQuizBySlug, submitStudentAttempt, checkExistingAttempt } from "../../quiz/services/quiz.service";
 import { QuestionCard } from "../../../components/quiz/QuestionCard";
+import { QuizMusic } from "../../../components/quiz/QuizMusic";
 
 type Phase = "identity" | "quiz" | "result";
 
@@ -23,6 +24,9 @@ export function StudentQuiz() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [startTime] = useState(Date.now());
+  const [musicPlaying, setMusicPlaying] = useState(false);
+  const [checkError, setCheckError] = useState("");
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -48,6 +52,18 @@ export function StudentQuiz() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    try {
+      const exists = await checkExistingAttempt(quiz.id, studentName, studentNumber, studentClass);
+      if (exists) {
+        setCheckError("Data sudah ada. Kamu sudah mengerjakan quiz ini sebelumnya.");
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      setSubmitting(false);
+      return;
+    }
+
     let correct = 0;
     const answerData = questions.map((q: any) => {
       const selected = answers[q.id] ?? -1;
@@ -132,19 +148,17 @@ export function StudentQuiz() {
                 </label>
                 <input
                   value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
+                  onChange={(e) => { setStudentName(e.target.value); setCheckError(""); }}
                   placeholder="Masukkan nama Anda"
                   className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
-                    <Hash className="w-4 h-4 inline mr-1" />No. Absen
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-1">No. Absen</label>
                   <input
                     value={studentNumber}
-                    onChange={(e) => setStudentNumber(e.target.value)}
+                    onChange={(e) => { setStudentNumber(e.target.value); setCheckError(""); }}
                     placeholder="Nomor"
                     className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
@@ -153,19 +167,48 @@ export function StudentQuiz() {
                   <label className="block text-sm font-medium text-foreground mb-1">Kelas</label>
                   <input
                     value={studentClass}
-                    onChange={(e) => setStudentClass(e.target.value)}
+                    onChange={(e) => { setStudentClass(e.target.value); setCheckError(""); }}
                     placeholder="Kelas"
                     className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
               </div>
 
+              {checkError && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30">
+                  <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-600 dark:text-red-400">{checkError}</p>
+                </div>
+              )}
+
               <button
-                onClick={() => studentName.trim() && setPhase("quiz")}
-                disabled={!studentName.trim()}
+                onClick={async () => {
+                  if (!studentName.trim()) return;
+                  setCheckError("");
+                  setChecking(true);
+                  try {
+                    const exists = await checkExistingAttempt(quiz.id, studentName, studentNumber, studentClass);
+                    if (exists) {
+                      setCheckError("Data sudah ada. Kamu sudah mengerjakan quiz ini sebelumnya.");
+                      setChecking(false);
+                      return;
+                    }
+                  } catch {
+                    setChecking(false);
+                    return;
+                  }
+                  setMusicPlaying(true);
+                  setPhase("quiz");
+                  setChecking(false);
+                }}
+                disabled={!studentName.trim() || checking}
                 className="w-full py-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-medium hover:shadow-lg disabled:opacity-40 transition-all duration-200"
               >
-                Mulai Quiz
+                {checking ? (
+                  <span className="inline-flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Memeriksa...</span>
+                ) : (
+                  "Mulai Quiz"
+                )}
               </button>
             </div>
           </div>
@@ -186,6 +229,7 @@ export function StudentQuiz() {
 
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <QuizMusic playing={musicPlaying} />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -223,6 +267,7 @@ export function StudentQuiz() {
             <button
               onClick={() => {
                 setPhase("identity");
+                setMusicPlaying(false);
                 setAnswers({});
                 setCurrentIndex(0);
                 setResult(null);
@@ -240,6 +285,7 @@ export function StudentQuiz() {
   // Quiz Phase
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <QuizMusic playing={musicPlaying} />
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-2xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
@@ -288,7 +334,7 @@ export function StudentQuiz() {
             {currentIndex < questions.length - 1 ? (
               <button
                 onClick={() => setCurrentIndex((i) => i + 1)}
-                disabled={!answers[currentQuestion?.id]}
+                disabled={answers[currentQuestion?.id] === undefined}
                 className="px-5 py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-medium disabled:opacity-40 transition-all"
               >
                 Selanjutnya

@@ -66,7 +66,7 @@ export const ShareImageCard = forwardRef<HTMLDivElement, ShareImageCardProps>(
               letterSpacing: -0.5,
             }}
           >
-            Hukum Taharah
+            THAVA
           </h1>
           <p
             style={{

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Volume2, VolumeX, Music } from "lucide-react";
 
 export const QUIZ_MUSIC_URL =
-  "https://archive.org/download/AbouElyes/BackgroundNasheed-RelaxingBn.mp3";
+  "/assets/backsound-quiz.webm";
 
 interface QuizMusicProps {
   playing: boolean;
@@ -10,7 +10,7 @@ interface QuizMusicProps {
 
 export function QuizMusic({ playing }: QuizMusicProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {

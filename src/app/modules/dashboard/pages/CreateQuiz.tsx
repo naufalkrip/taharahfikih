@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Loader2, CheckCircle2, Sparkles, BookOpen } from "lucide-react";
 import { motion } from "motion/react";
-import { createQuiz } from "../../quiz/services/quiz.service";
+import { createQuiz, getQuizCategories } from "../../quiz/services/quiz.service";
 import { quizQuestions } from "../../../data/quiz-questions";
 import type { QuizQuestion } from "../../../data/quiz-questions";
 
@@ -46,9 +46,15 @@ export function CreateQuiz() {
   const [timeLimit, setTimeLimit] = useState(0);
   const [questionCount, setQuestionCount] = useState(10);
   const [difficulty, setDifficulty] = useState("all");
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    getQuizCategories().then(setCategories);
+  }, []);
 
   const topicLower = topic.trim().toLowerCase();
   const topicMatch =
@@ -89,6 +95,7 @@ export function CreateQuiz() {
       const quiz = await createQuiz({
         title: title.trim(),
         topic: topic.trim(),
+        category: category.trim(),
         description: description.trim(),
         time_limit: timeLimit,
         shuffle_questions: true,
@@ -147,6 +154,21 @@ export function CreateQuiz() {
                 <option value="Semua Materi" />
                 {topicSuggestions.filter((s) => s !== "semua").map((s) => (
                   <option key={s} value={s.charAt(0).toUpperCase() + s.slice(1)} />
+                ))}
+              </datalist>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Kelas</label>
+              <input
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="contoh: 7A, 7B, IPA 1, ..."
+                list="category-suggestions"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <datalist id="category-suggestions">
+                {categories.map((c) => (
+                  <option key={c} value={c} />
                 ))}
               </datalist>
             </div>

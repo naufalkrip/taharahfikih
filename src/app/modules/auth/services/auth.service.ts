@@ -83,3 +83,53 @@ export function logoutUser() {
 export function isAuthenticated(): boolean {
   return getSession() !== null;
 }
+
+export async function updateUsername(userId: string, newUsername: string): Promise<void> {
+  const trimmed = newUsername.trim().toLowerCase();
+  if (trimmed.length < 3) throw new Error("Username minimal 3 karakter");
+
+  const { data: existing } = await supabase
+    .from("users")
+    .select("id")
+    .eq("username", trimmed)
+    .neq("id", userId)
+    .maybeSingle();
+
+  if (existing) throw new Error("Username sudah digunakan");
+
+  const { error } = await supabase.from("users").update({ username: trimmed }).eq("id", userId);
+  if (error) throw new Error("Gagal mengupdate username");
+
+  const session = getSession();
+  if (session) {
+    setSession({ ...session, username: trimmed });
+  }
+}
+
+export async function changePassword(
+  userId: string,
+  oldPassword: string,
+  newPassword: string,
+): Promise<void> {
+  if (newPassword.length < 6) throw new Error("Password minimal 6 karakter");
+
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("password_hash")
+    .eq("id", userId)
+    .single();
+
+  if (error || !user) throw new Error("Pengguna tidak ditemukan");
+
+  const valid = await bcrypt.compare(oldPassword, user.password_hash);
+  if (!valid) throw new Error("Sandi lama salah");
+
+  const password_hash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({ password_hash })
+    .eq("id", userId);
+
+  if (updateError) throw new Error("Gagal mengupdate sandi");
+}

@@ -17,7 +17,6 @@ import { QuizList } from "./modules/dashboard/pages/QuizList";
 import { StudentResults } from "./modules/dashboard/pages/StudentResults";
 import { StudentDetail } from "./modules/dashboard/pages/StudentDetail";
 import { ExportPDF } from "./modules/dashboard/pages/ExportPDF";
-import { ShareResults } from "./modules/dashboard/pages/ShareResults";
 import { Settings } from "./modules/dashboard/pages/Settings";
 import { StudentQuiz } from "./modules/student/pages/StudentQuiz";
 import { isAuthenticated } from "./modules/auth/services/auth.service";
@@ -60,7 +59,6 @@ export const router = createBrowserRouter([
       { path: "results", Component: StudentResults },
       { path: "results/:id", Component: StudentDetail },
       { path: "export", Component: ExportPDF },
-      { path: "share", Component: ShareResults },
       { path: "settings", Component: Settings },
     ],
   },
