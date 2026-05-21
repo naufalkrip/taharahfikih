@@ -125,7 +125,7 @@ function Badge({ children }: { children: React.ReactNode }) {
 }
 
 function HeroStats() {
-  const t = (key: string) => key;
+  const { lang } = useLanguage();
   const stats = [
     { label: "Materi Lengkap", labelEn: "Complete Materials", value: "100+" },
     { label: "Quiz Interaktif", labelEn: "Interactive Quizzes", value: "500+" },
@@ -134,7 +134,7 @@ function HeroStats() {
   ];
 
   return (
-    <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-8">
+    <div className="flex flex-wrap justify-center gap-3 sm:gap-3 mt-5">
       {stats.map((stat, i) => (
         <motion.div
           key={i}
@@ -144,7 +144,7 @@ function HeroStats() {
           className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-md border border-emerald-200/50 dark:border-emerald-700/30 shadow-sm"
         >
           <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{stat.value}</span>
-          <span className="text-[11px] font-medium text-muted-foreground">{stat.label}</span>
+          <span className="text-[11px] font-medium text-muted-foreground">{lang === "en" ? stat.labelEn : stat.label}</span>
         </motion.div>
       ))}
     </div>
@@ -152,14 +152,15 @@ function HeroStats() {
 }
 
 function ScrollIndicator() {
+  const { lang } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 1.2 }}
-      className="flex flex-col items-center gap-1 mt-10 text-muted-foreground/60"
+      className="flex flex-col items-center gap-1 mt-5 text-muted-foreground/60"
     >
-      <span className="text-[10px] font-medium tracking-widest uppercase">Scroll</span>
+      <span className="text-[10px] font-medium tracking-widest uppercase">{lang === "en" ? "Scroll" : "Scroll"}</span>
       <motion.div
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -187,16 +188,16 @@ function SectionHeader({ badge, title, description, center = true }: {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className={center ? "text-center mb-10 sm:mb-14" : "mb-8 sm:mb-10"}
+      className={center ? "text-center mb-6 sm:mb-8 lg:mb-10" : "mb-6 sm:mb-8"}
     >
       {badge && (
-        <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold mb-3 border border-emerald-200 dark:border-emerald-700/50">
+        <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold mb-2 border border-emerald-200 dark:border-emerald-700/50">
           {badge}
         </span>
       )}
       <h2 className="text-foreground">{title}</h2>
       {description && (
-        <p className="mt-3 text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+        <p className="mt-2 text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
           {description}
         </p>
       )}
@@ -222,6 +223,7 @@ function GlassCard({ children, className = "", delay = 0 }: {
 }
 
 function WhySection() {
+  const { lang } = useLanguage();
   const items = [
     {
       icon: HeartHandshake,
@@ -260,20 +262,20 @@ function WhySection() {
   return (
     <section className="relative">
       <SectionHeader
-        badge="Mengapa Penting?"
-        title="Kenapa Belajar Taharah?"
-        description="Thaharah adalah kunci utama dalam beribadah. Berikut alasan mengapa Anda perlu mempelajarinya."
+        badge={lang === "en" ? "Why is it Important?" : "Mengapa Penting?"}
+        title={lang === "en" ? "Why Learn Taharah?" : "Kenapa Belajar Taharah?"}
+        description={lang === "en" ? "Thaharah (purification) is the key to worship. Here is why you need to study it." : "Thaharah adalah kunci utama dalam beribadah. Berikut alasan mengapa Anda perlu mempelajarinya."}
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {items.map((item, i) => {
           const Icon = item.icon;
           return (
-            <GlassCard key={i} delay={i * 0.1} className="p-5 sm:p-6">
-              <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br ${item.gradient} shadow-sm mb-3`}>
-                <Icon className="w-5.5 h-5.5 text-white" />
+            <GlassCard key={i} delay={i * 0.1} className="p-4 sm:p-5">
+              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${item.gradient} shadow-sm mb-2.5`}>
+                <Icon className="w-5 h-5 text-white" />
               </div>
-              <h3 className="font-heading font-bold text-foreground text-base sm:text-lg mb-2">{item.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+              <h3 className="font-heading font-bold text-foreground text-sm sm:text-base mb-1.5">{lang === "en" ? item.titleEn : item.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{lang === "en" ? item.descEn : item.desc}</p>
             </GlassCard>
           );
         })}
@@ -282,61 +284,12 @@ function WhySection() {
   );
 }
 
-function WhatYouLearnSection() {
-  const steps = [
-    { icon: Droplets, title: "Wudhu", titleEn: "Ablution", desc: "Syarat, rukun, sunnah, dan pembatal wudhu", descEn: "Conditions, pillars, sunnah, and nullifiers of wudhu" },
-    { icon: Droplets, title: "Mandi Wajib", titleEn: "Full Ablution", desc: "Sebab, tata cara, dan hal yang mewajibkan ghusl", descEn: "Causes, procedures, and obligations of ghusl" },
-    { icon: Droplets, title: "Tayammum", titleEn: "Tayammum", desc: "Bersuci dengan debu sebagai pengganti air", descEn: "Dry purification as substitute for water" },
-    { icon: Droplets, title: "Najis & Bersuci", titleEn: "Impurity & Purification", desc: "Jenis najis dan cara mensucikannya", descEn: "Types of impurity and how to purify them" },
-  ];
-
-  return (
-    <section className="relative">
-      <SectionHeader
-        badge="Kurikulum"
-        title="Apa yang Akan Dipelajari?"
-        description="Materi disusun secara sistematis dari dasar hingga mahir dalam bab thaharah."
-      />
-      <div className="relative">
-        <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-emerald-300 via-emerald-200 to-transparent dark:from-emerald-600 dark:via-emerald-800 hidden sm:block" />
-        <div className="space-y-4 sm:space-y-0">
-          {steps.map((step, i) => {
-            const Icon = step.icon;
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.12 }}
-                className="relative sm:pl-16 sm:pb-8"
-              >
-                <div className="hidden sm:flex absolute left-3 top-1 w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/40 border-2 border-emerald-400 dark:border-emerald-600 items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                </div>
-                <GlassCard delay={0} className="p-4 sm:p-5 flex items-center gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-sm">
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-heading font-bold text-foreground text-sm sm:text-base">{step.title}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{step.desc}</p>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                </GlassCard>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function TopicsSection() {
+  const { lang } = useLanguage();
   const topics = [
     {
       title: "Wudhu",
+      titleEn: "Wudhu",
       key: "nav.wudhu",
       lessons: "12",
       duration: "45 min",
@@ -350,6 +303,7 @@ function TopicsSection() {
     },
     {
       title: "Mandi Wajib",
+      titleEn: "Full Ablution (Ghusl)",
       key: "nav.mandi-wajib",
       lessons: "10",
       duration: "40 min",
@@ -363,6 +317,7 @@ function TopicsSection() {
     },
     {
       title: "Tayammum",
+      titleEn: "Tayammum",
       key: "nav.tayammum",
       lessons: "8",
       duration: "35 min",
@@ -376,6 +331,7 @@ function TopicsSection() {
     },
     {
       title: "Najis & Bersuci",
+      titleEn: "Impurity & Purification",
       key: "nav.najis",
       lessons: "10",
       duration: "40 min",
@@ -392,11 +348,11 @@ function TopicsSection() {
   return (
     <section className="relative">
       <SectionHeader
-        badge="Materi Belajar"
-        title="Pilih Materi Pembelajaran"
-        description="Setiap materi dilengkapi dengan dalil, tata cara, dan penjelasan lengkap."
+        badge={lang === "en" ? "Learning Materials" : "Materi Belajar"}
+        title={lang === "en" ? "Choose Your Topic" : "Pilih Materi Pembelajaran"}
+        description={lang === "en" ? "Each topic includes evidence, procedures, and complete explanations." : "Setiap materi dilengkapi dengan dalil, tata cara, dan penjelasan lengkap."}
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         {topics.map((topic, index) => {
           return (
             <motion.div
@@ -410,32 +366,32 @@ function TopicsSection() {
                 to={topic.href}
                 className={`group block bg-white/80 dark:bg-white/[0.04] backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-800/30 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-400 hover:-translate-y-1.5 ${topic.borderHover}`}
               >
-                <div className="relative h-36 sm:h-40 bg-gradient-to-br from-muted to-background flex items-center justify-center overflow-hidden">
+                <div className="relative h-28 sm:h-32 bg-gradient-to-br from-muted to-background flex items-center justify-center overflow-hidden">
                   <div className={`absolute inset-0 bg-gradient-to-br ${topic.gradient} opacity-[0.08] dark:opacity-[0.12]`} />
                   <motion.img
                     src={topic.imageSrc}
                     alt={topic.title}
-                    className="w-20 h-20 sm:w-24 sm:h-24 object-contain relative z-10"
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-contain relative z-10"
                     whileHover={{ scale: 1.1, rotate: -3 }}
                     transition={{ type: "spring", stiffness: 200 }}
                   />
                   <div className="absolute top-3 right-3 z-10">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${topic.bgLight} text-foreground border border-border/50 backdrop-blur-sm`}>
-                      {topic.lessons} Modul
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${topic.bgLight} text-foreground border border-border/50 backdrop-blur-sm`}>
+                      {topic.lessons} {lang === "en" ? "Modules" : "Modul"}
                     </span>
                   </div>
                 </div>
-                <div className="p-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-heading text-lg font-bold text-foreground group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
-                      {topic.title}
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h3 className="font-heading text-base sm:text-lg font-bold text-foreground group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                      {lang === "en" ? topic.titleEn : topic.title}
                     </h3>
                     <Timer className="w-3.5 h-3.5 text-muted-foreground/60" />
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                    {topic.desc}
+                    {lang === "en" ? topic.descEn : topic.desc}
                   </p>
-                  <div className="mt-4 flex items-center gap-2.5">
+                  <div className="mt-3 flex items-center gap-2.5">
                     <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                       <motion.div
                         className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500"
@@ -445,7 +401,7 @@ function TopicsSection() {
                       />
                     </div>
                     <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                      Mulai Belajar
+                      {lang === "en" ? "Start Learning" : "Mulai Belajar"}
                       <ArrowRight className="w-3 h-3" />
                     </span>
                   </div>
@@ -460,6 +416,7 @@ function TopicsSection() {
 }
 
 function FeaturesSection() {
+  const { lang } = useLanguage();
   const features = [
     {
       icon: BrainCircuit,
@@ -520,20 +477,20 @@ function FeaturesSection() {
   return (
     <section className="relative">
       <SectionHeader
-        badge="Fitur"
-        title="Fitur Platform"
-        description="Nikmati pengalaman belajar yang interaktif dan menyenangkan."
+        badge={lang === "en" ? "Features" : "Fitur"}
+        title={lang === "en" ? "Platform Features" : "Fitur Platform"}
+        description={lang === "en" ? "Enjoy an interactive and fun learning experience." : "Nikmati pengalaman belajar yang interaktif dan menyenangkan."}
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {features.map((feat, i) => {
           const Icon = feat.icon;
           return (
-            <GlassCard key={i} delay={feat.delay} className="p-5 sm:p-6">
-              <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br ${feat.gradient} shadow-sm mb-3`}>
-                <Icon className="w-5.5 h-5.5 text-white" />
+            <GlassCard key={i} delay={feat.delay} className="p-4 sm:p-5">
+              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${feat.gradient} shadow-sm mb-2.5`}>
+                <Icon className="w-5 h-5 text-white" />
               </div>
-              <h3 className="font-heading font-bold text-foreground text-sm sm:text-base mb-2">{feat.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{feat.desc}</p>
+              <h3 className="font-heading font-bold text-foreground text-sm sm:text-base mb-1.5">{lang === "en" ? feat.titleEn : feat.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{lang === "en" ? feat.descEn : feat.desc}</p>
             </GlassCard>
           );
         })}
@@ -543,6 +500,7 @@ function FeaturesSection() {
 }
 
 function HowToLearnSection() {
+  const { lang } = useLanguage();
   const steps = [
     { num: "01", icon: BookOpen, title: "Pilih Materi", titleEn: "Choose Material", desc: "Pilih topik thaharah yang ingin dipelajari dari 4 materi utama.", descEn: "Choose the thaharah topic you want to study from 4 main subjects." },
     { num: "02", icon: GraduationCap, title: "Pelajari", titleEn: "Study", desc: "Baca dan pahami materi lengkap dengan dalil dan penjelasan.", descEn: "Read and understand complete materials with evidence and explanations." },
@@ -553,11 +511,11 @@ function HowToLearnSection() {
   return (
     <section className="relative">
       <SectionHeader
-        badge="Panduan"
-        title="Cara Belajar"
-        description="Ikuti langkah mudah berikut untuk memulai perjalanan belajar thaharah."
+        badge={lang === "en" ? "Guide" : "Panduan"}
+        title={lang === "en" ? "How to Learn" : "Cara Belajar"}
+        description={lang === "en" ? "Follow these easy steps to start your thaharah learning journey." : "Ikuti langkah mudah berikut untuk memulai perjalanan belajar thaharah."}
       />
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         {steps.map((step, i) => {
           const Icon = step.icon;
           return (
@@ -567,16 +525,16 @@ function HowToLearnSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.12 }}
-              className="relative text-center p-5 sm:p-6"
+              className="relative text-center p-4"
             >
-              <div className="text-5xl sm:text-6xl font-heading font-black text-emerald-200 dark:text-emerald-800/40 leading-none mb-3">
+              <div className="text-4xl sm:text-5xl font-heading font-black text-emerald-200 dark:text-emerald-800/40 leading-none mb-2">
                 {step.num}
               </div>
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm mb-3">
-                <Icon className="w-6 h-6 text-white" />
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm mb-2">
+                <Icon className="w-5 h-5 text-white" />
               </div>
-              <h3 className="font-heading font-bold text-foreground text-sm sm:text-base mb-1">{step.title}</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+              <h3 className="font-heading font-bold text-foreground text-sm sm:text-base mb-1">{lang === "en" ? step.titleEn : step.title}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{lang === "en" ? step.descEn : step.desc}</p>
               {i < steps.length - 1 && (
                 <div className="hidden sm:block absolute top-8 right-[-8px] text-emerald-300 dark:text-emerald-700">
                   <ArrowRight className="w-5 h-5" />
@@ -591,6 +549,7 @@ function HowToLearnSection() {
 }
 
 function StatsSection() {
+  const { lang } = useLanguage();
   const stats = [
     { value: 100, suffix: "+", label: "Materi Pembelajaran", labelEn: "Learning Materials", icon: BookOpen },
     { value: 500, suffix: "+", label: "Quiz Tersedia", labelEn: "Available Quizzes", icon: BrainCircuit },
@@ -600,17 +559,17 @@ function StatsSection() {
 
   return (
     <section className="relative">
-      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-8 sm:p-12 shadow-lg overflow-hidden relative">
+      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 sm:p-8 lg:p-10 shadow-lg overflow-hidden relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.15),transparent_60%)]" />
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/3 translate-x-1/4 blur-2xl" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4 blur-2xl" />
         <div className="relative z-10">
           <SectionHeader
-            badge="Platform"
-            title="Statistik Platform"
-            description="Bergabung dengan ribuan pelajar yang telah menggunakan platform ini."
+            badge={lang === "en" ? "Platform" : "Platform"}
+            title={lang === "en" ? "Platform Statistics" : "Statistik Platform"}
+            description={lang === "en" ? "Join thousands of learners who have used this platform." : "Bergabung dengan ribuan pelajar yang telah menggunakan platform ini."}
           />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
             {stats.map((stat, i) => {
               const Icon = stat.icon;
               const { count, ref } = useCountUp(stat.value);
@@ -623,13 +582,13 @@ function StatsSection() {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                   className="text-center"
                 >
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 mb-3">
-                    <Icon className="w-5 h-5 text-white" />
+                  <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 mb-2">
+                    <Icon className="w-4 h-4 text-white" />
                   </div>
-                  <div className="text-2xl sm:text-3xl font-extrabold text-white">
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white">
                     <span ref={ref}>{count}</span>{stat.suffix}
                   </div>
-                  <div className="text-xs sm:text-sm text-white/80 mt-1 font-medium">{stat.label}</div>
+                  <div className="text-xs sm:text-sm text-white/80 mt-1 font-medium">{lang === "en" ? stat.labelEn : stat.label}</div>
                 </motion.div>
               );
             })}
@@ -641,28 +600,28 @@ function StatsSection() {
 }
 
 function QuizCtaSection() {
+  const { lang } = useLanguage();
   return (
     <section className="relative">
-      <GlassCard delay={0} className="p-6 sm:p-8 lg:p-10 overflow-hidden relative">
+      <GlassCard delay={0} className="p-5 sm:p-6 lg:p-8 overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-500/10 dark:to-teal-500/5" />
         <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-200/20 dark:bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-xl" />
-        <div className="relative flex flex-col sm:flex-row items-center gap-6">
+        <div className="relative flex flex-col sm:flex-row items-center gap-5">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             whileInView={{ scale: 1, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg"
+            className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg"
           >
-            <BrainCircuit className="w-8 h-8 text-white" />
+            <BrainCircuit className="w-7 h-7 text-white" />
           </motion.div>
           <div className="flex-1 text-center sm:text-left">
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-1">
-              Uji Pemahaman Anda
+            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-1">
+              {lang === "en" ? "Test Your Understanding" : "Uji Pemahaman Anda"}
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-lg">
-              Ikuti quiz interaktif untuk mengukur pemahaman Anda tentang fikih
-              taharah. Dapatkan skor dan lihat hasil belajar Anda!
+              {lang === "en" ? "Take interactive quizzes to measure your understanding of thaharah fiqh. Get scores and see your learning results!" : "Ikuti quiz interaktif untuk mengukur pemahaman Anda tentang fikih taharah. Dapatkan skor dan lihat hasil belajar Anda!"}
             </p>
           </div>
           <motion.div
@@ -671,9 +630,9 @@ function QuizCtaSection() {
           >
             <Link
               to="/quiz"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium text-sm shadow-lg hover:shadow-xl transition-all duration-200"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium text-sm shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              Mulai Quiz
+              {lang === "en" ? "Start Quiz" : "Mulai Quiz"}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </motion.div>
@@ -684,30 +643,31 @@ function QuizCtaSection() {
 }
 
 export function Home() {
+  const { lang } = useLanguage();
   return (
-    <div className="space-y-24 sm:space-y-32 pb-16 sm:pb-20 relative">
+    <div className="space-y-14 sm:space-y-16 lg:space-y-20 pb-12 sm:pb-16 relative">
       <FloatingBackground />
 
       {/* Hero Section */}
-      <section className="relative pt-12 sm:pt-16 lg:pt-20 text-center">
+      <section className="relative pt-8 sm:pt-12 lg:pt-16 text-center">
         <FloatingIcons />
 
         <div className="relative z-10 max-w-4xl mx-auto">
-          <Badge>Modern Islamic Learning Platform</Badge>
+          <Badge>{lang === "en" ? "Modern Islamic Learning Platform" : "Platform Pembelajaran Islam Modern"}</Badge>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-            className="font-heading text-4xl sm:text-5xl lg:text-7xl font-extrabold text-foreground tracking-tight mt-5 leading-[1.1]"
+            className="font-heading text-4xl sm:text-5xl lg:text-7xl font-extrabold text-foreground tracking-tight mt-4 leading-[1.05]"
           >
-            Belajar{" "}
+            {lang === "en" ? "Learn" : "Belajar"}{" "}
             <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400 dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-300 bg-clip-text text-transparent">
               Thaharah
             </span>
             <br />
             <span className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-muted-foreground/80">
-              dengan Mudah & Menyenangkan
+              {lang === "en" ? "with Ease & Fun" : "dengan Mudah & Menyenangkan"}
             </span>
           </motion.h1>
 
@@ -715,33 +675,32 @@ export function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.35 }}
-            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mt-5"
+            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mt-3"
           >
-            Platform pembelajaran fikih thaharah interaktif. Pelajari tata cara bersuci
-            lengkap dengan dalil, quiz, dan dashboard progres belajar.
+            {lang === "en" ? "An interactive fiqh thaharah learning platform. Learn the procedures of purification complete with evidence, quizzes, and a learning progress dashboard." : "Platform pembelajaran fikih thaharah interaktif. Pelajari tata cara bersuci lengkap dengan dalil, quiz, dan dashboard progres belajar."}
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.45 }}
-            className="flex flex-wrap items-center justify-center gap-3 mt-6"
+            className="flex flex-wrap items-center justify-center gap-3 mt-5"
           >
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Link
                 to="/wudhu"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-sm shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30 transition-all duration-200 hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-sm shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30 transition-all duration-200 hover:shadow-xl"
               >
-                Mulai Belajar Sekarang
+                {lang === "en" ? "Start Learning Now" : "Mulai Belajar Sekarang"}
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
             <Link
               to="/quiz"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/80 dark:bg-white/10 backdrop-blur-sm border border-emerald-200 dark:border-emerald-700/50 text-foreground font-medium text-sm hover:bg-white dark:hover:bg-white/20 transition-all duration-200 shadow-sm"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/80 dark:bg-white/10 backdrop-blur-sm border border-emerald-200 dark:border-emerald-700/50 text-foreground font-medium text-sm hover:bg-white dark:hover:bg-white/20 transition-all duration-200 shadow-sm"
             >
               <BrainCircuit className="w-4 h-4" />
-              Coba Quiz
+              {lang === "en" ? "Try Quiz" : "Coba Quiz"}
             </Link>
           </motion.div>
 
@@ -752,9 +711,6 @@ export function Home() {
 
       {/* Kenapa Belajar Taharah Penting */}
       <WhySection />
-
-      {/* Apa yang Akan Dipelajari */}
-      <WhatYouLearnSection />
 
       {/* Materi Pembelajaran */}
       <TopicsSection />
@@ -776,14 +732,13 @@ export function Home() {
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="bg-amber-50/70 dark:bg-amber-950/20 backdrop-blur-sm border border-amber-200/50 dark:border-amber-800/50 rounded-xl p-5 sm:p-6"
+        className="bg-amber-50/70 dark:bg-amber-950/20 backdrop-blur-sm border border-amber-200/50 dark:border-amber-800/50 rounded-xl p-4 sm:p-5"
       >
         <div className="flex gap-3">
           <div className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0 mt-2" />
           <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
-            <strong>Catatan:</strong> Materi ini disusun berdasarkan rujukan fikih yang umum digunakan. Untuk
-            pendalaman lebih lanjut, disarankan untuk berkonsultasi dengan ulama atau ustadz terpercaya di lingkungan
-            Anda.
+            <strong>{lang === "en" ? "Note:" : "Catatan:"}</strong>{" "}
+            {lang === "en" ? "These materials are compiled based on widely used fiqh references. For further study, it is recommended to consult with trusted scholars or teachers in your community." : "Materi ini disusun berdasarkan rujukan fikih yang umum digunakan. Untuk pendalaman lebih lanjut, disarankan untuk berkonsultasi dengan ulama atau ustadz terpercaya di lingkungan Anda."}
           </p>
         </div>
       </motion.div>

@@ -2,6 +2,7 @@ import { type ReactNode, type ElementType, useState } from "react";
 import { motion } from "motion/react";
 import { BookOpen } from "lucide-react";
 import { cn } from "./ui/utils";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface ScrollRevealProps {
   children: ReactNode;
@@ -71,6 +72,7 @@ interface DalilBoxProps {
 }
 
 export function DalilBox({ arabic, translation, source }: DalilBoxProps) {
+  const { lang } = useLanguage();
   return (
     <ScrollReveal>
       <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6 sm:p-8">
@@ -79,7 +81,7 @@ export function DalilBox({ arabic, translation, source }: DalilBoxProps) {
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-6 bg-emerald-500 rounded-full" />
             <h3 className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              Dalil Al-Qur'an
+              {lang === "en" ? "Quranic Evidence" : "Dalil Al-Qur'an"}
             </h3>
           </div>
           <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-5 sm:p-6 border border-emerald-200/50 dark:border-emerald-700/30">
@@ -360,21 +362,26 @@ export function KasusKhususSection({ kasus, color = "emerald" }: KasusKhususProp
 
 interface RujukanItem {
   title: string;
+  titleEn?: string;
   sumber: string;
+  sumberEn?: string;
   keterangan: string;
+  keteranganEn?: string;
   arabic?: string;
   translation?: string;
+  translationEn?: string;
 }
 
 export function RujukanSection({ rujukan }: { rujukan: RujukanItem[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { lang } = useLanguage();
 
   return (
     <ScrollReveal>
       <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-          <h2 className="text-foreground">Daftar Rujukan</h2>
+          <h2 className="text-foreground">{lang === "en" ? "References" : "Daftar Rujukan"}</h2>
         </div>
         <div className="space-y-3">
           {rujukan.map((item, i) => {
@@ -397,13 +404,13 @@ export function RujukanSection({ rujukan }: { rujukan: RujukanItem[] }) {
                   </div>
                   <div className="flex-1 min-w-0 text-left">
                     <h4 className="font-semibold text-foreground text-sm sm:text-base mb-0.5">
-                      {item.title}
+                      {lang === "en" && item.titleEn ? item.titleEn : item.title}
                     </h4>
                     <p className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">
-                      {item.sumber}
+                      {lang === "en" && item.sumberEn ? item.sumberEn : item.sumber}
                     </p>
                     <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      {item.keterangan}
+                      {lang === "en" && item.keteranganEn ? item.keteranganEn : item.keterangan}
                     </p>
                   </div>
                   {hasAyat && (
@@ -431,7 +438,7 @@ export function RujukanSection({ rujukan }: { rujukan: RujukanItem[] }) {
                         </p>
                         <div className="border-t border-emerald-200/50 dark:border-emerald-700/30 pt-3">
                           <p className="text-muted-foreground text-sm sm:text-base leading-relaxed italic">
-                            "{item.translation}"
+                            "{lang === "en" && item.translationEn ? item.translationEn : item.translation}"
                           </p>
                         </div>
                       </div>

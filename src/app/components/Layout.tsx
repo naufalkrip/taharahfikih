@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
-import { BookOpen, Droplets, Menu, X, ChevronUp, Moon, Sun, LayoutDashboard, LogIn, LogOut, Languages } from "lucide-react";
+import { BookOpen, Droplets, Menu, X, ChevronUp, Moon, Sun, LayoutDashboard, LogIn, LogOut, Languages, GraduationCap, Code2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTheme } from "next-themes";
@@ -278,6 +278,39 @@ export function Layout() {
           </div>
         </div>
       </footer>
+
+      {/* Developer Credits */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="border-t border-border/40 bg-gradient-to-b from-transparent to-muted/10"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-xs text-muted-foreground/70 text-center leading-relaxed">
+              <span>© 2026 Taharo — </span>
+              <span>
+                Developed by{" "}
+                <span className="font-medium text-muted-foreground/80 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-200">Alyasa</span>
+                {", "}
+                <span className="font-medium text-muted-foreground/80 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-200">Yolanda</span>
+                {" & "}
+                <span className="font-medium text-muted-foreground/80 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-200">Naufal</span>
+              </span>
+            </p>
+            <p className="text-[11px] text-muted-foreground/50 text-center">
+              ITSNU Pekalongan — Program Studi Teknologi Informasi
+            </p>
+            <div className="flex items-center gap-3 text-muted-foreground/40 mt-0.5">
+              <GraduationCap className="w-3.5 h-3.5" />
+              <Code2 className="w-3.5 h-3.5" />
+              <BookOpen className="w-3.5 h-3.5" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Back to Top Button */}
       <AnimatePresence>
