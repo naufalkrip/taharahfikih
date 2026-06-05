@@ -166,8 +166,7 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-            className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm sm:max-w-md flex flex-col"
-            style={{ maxHeight: "90vh" }}
+            className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm sm:max-w-md flex flex-col h-[90vh] max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-5 border-b border-border flex-shrink-0">
@@ -207,7 +206,7 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
               </div>
             </div>
 
-            <div className="flex-shrink-0 px-5 pb-5 pt-3 space-y-2 border-t border-border">
+            <div className="flex-shrink-0 px-5 pb-5 pt-3 space-y-2 border-t border-border overflow-y-auto">
               {links.map((link) => {
                 const style = linkStyles[link.name];
                 return (
