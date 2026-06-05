@@ -17,7 +17,7 @@ export function Ghusl() {
   const { lang } = useLanguage();
 
   const sebab = [
-    { title: "Keluar Mani", titleEn: "Emission of Semen", description: "Keluarnya air mani dengan syahwat (lust), baik saat tidur maupun terjaga", descriptionEn: "The discharge of seminal fluid with sexual desire, whether while asleep or awake" },
+    { title: "Keluar Mani", titleEn: "Emission of Semen", description: "Keluarnya air mani dengan syahwat, baik saat tidur maupun terjaga", descriptionEn: "The discharge of seminal fluid with sexual desire, whether while asleep or awake" },
     { title: "Bersetubuh", titleEn: "Sexual Intercourse", description: "Pertemuan dua kemaluan (khitan) meskipun tidak keluar mani", descriptionEn: "The meeting of the two circumcised parts (genitals) even if no semen is emitted" },
     { title: "Haid", titleEn: "Menstruation", description: "Darah yang keluar dari kemaluan wanita pada waktu-waktu tertentu", descriptionEn: "Blood that exits from a woman's private parts at specific times" },
     { title: "Nifas", titleEn: "Postpartum Bleeding", description: "Darah yang keluar setelah melahirkan", descriptionEn: "Blood that exits after childbirth" },
