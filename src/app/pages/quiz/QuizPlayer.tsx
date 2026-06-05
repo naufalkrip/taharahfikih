@@ -55,14 +55,17 @@ export function QuizPlayer() {
     if (isComplete && info && topic) {
       const results = getResults();
       const topicTitle = info.title;
-      addResult({
-        topic: isAll ? "all" : topic,
-        topicTitle,
-        score: results.score,
-        total: results.total,
-        percentage: results.percentage,
-        timeSpent,
-      });
+      addResult(
+        {
+          topic: isAll ? "all" : topic,
+          topicTitle,
+          score: results.score,
+          total: results.total,
+          percentage: results.percentage,
+          timeSpent,
+        },
+        { questions: results.questions, answers: results.answers }
+      );
       navigate(`/quiz/results?topic=${topic}`, {
         state: {
           ...results,

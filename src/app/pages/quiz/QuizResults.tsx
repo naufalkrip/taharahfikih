@@ -51,6 +51,10 @@ export function QuizResults() {
     navigate(`/quiz/${topic}`);
   };
 
+  const handleViewDetail = (attemptId: string) => {
+    navigate(`/quiz/review/${attemptId}`);
+  };
+
   if (!currentResult && history.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -130,7 +134,7 @@ export function QuizResults() {
           )}
 
           {/* History */}
-          <QuizHistory history={history} onRetry={handleHistoryRetry} />
+          <QuizHistory history={history} onRetry={handleHistoryRetry} onViewDetail={handleViewDetail} />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import type { QuizQuestion } from "../data/quiz-questions";
 
 export interface QuizHistoryItem {
   id: string;
@@ -11,7 +12,13 @@ export interface QuizHistoryItem {
   timeSpent: number;
 }
 
+export interface QuizAttemptDetail {
+  questions: QuizQuestion[];
+  answers: Record<string, number>;
+}
+
 const STORAGE_KEY = "quiz-history";
+const DETAIL_STORAGE_KEY = "quiz-history-details";
 
 function loadHistory(): QuizHistoryItem[] {
   try {
@@ -29,28 +36,60 @@ function saveHistory(items: QuizHistoryItem[]) {
   } catch {}
 }
 
+function loadDetails(): Record<string, QuizAttemptDetail> {
+  try {
+    const raw = localStorage.getItem(DETAIL_STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, QuizAttemptDetail>;
+  } catch {
+    return {};
+  }
+}
+
+function saveDetails(details: Record<string, QuizAttemptDetail>) {
+  try {
+    localStorage.setItem(DETAIL_STORAGE_KEY, JSON.stringify(details));
+  } catch {}
+}
+
 export function useQuizHistory() {
   const [history, setHistory] = useState<QuizHistoryItem[]>(() => loadHistory());
+  const [detailMap, setDetailMap] = useState<Record<string, QuizAttemptDetail>>(() => loadDetails());
 
   useEffect(() => {
     saveHistory(history);
   }, [history]);
 
+  useEffect(() => {
+    saveDetails(detailMap);
+  }, [detailMap]);
+
   const addResult = useCallback(
-    (item: Omit<QuizHistoryItem, "id" | "date">) => {
+    (item: Omit<QuizHistoryItem, "id" | "date">, detail?: QuizAttemptDetail) => {
       const newItem: QuizHistoryItem = {
         ...item,
         id: crypto.randomUUID?.() ?? Date.now().toString(36) + Math.random().toString(36).slice(2),
         date: new Date().toISOString(),
       };
       setHistory((prev) => [newItem, ...prev]);
+      if (detail) {
+        setDetailMap((prev) => ({ ...prev, [newItem.id]: detail }));
+      }
       return newItem;
     },
     []
   );
 
+  const getAttemptDetail = useCallback(
+    (id: string): QuizAttemptDetail | null => {
+      return detailMap[id] ?? null;
+    },
+    [detailMap]
+  );
+
   const clearHistory = useCallback(() => {
     setHistory([]);
+    setDetailMap({});
   }, []);
 
   const getOverallPercentage = useCallback(() => {
@@ -92,5 +131,6 @@ export function useQuizHistory() {
     getOverallPercentage,
     getTopicStats,
     getLatestByTopic,
+    getAttemptDetail,
   };
 }

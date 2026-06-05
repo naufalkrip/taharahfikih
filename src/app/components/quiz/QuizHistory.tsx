@@ -1,4 +1,4 @@
-import { Clock, RotateCcw, BarChart3 } from "lucide-react";
+import { Clock, RotateCcw, BarChart3, Eye } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "../ui/utils";
 import type { QuizHistoryItem } from "../../hooks/useQuizHistory";
@@ -6,6 +6,7 @@ import type { QuizHistoryItem } from "../../hooks/useQuizHistory";
 interface QuizHistoryProps {
   history: QuizHistoryItem[];
   onRetry: (topic: string) => void;
+  onViewDetail?: (id: string) => void;
 }
 
 function formatDate(iso: string) {
@@ -32,7 +33,7 @@ function getPercentageColor(pct: number) {
   return "text-red-500";
 }
 
-export function QuizHistory({ history, onRetry }: QuizHistoryProps) {
+export function QuizHistory({ history, onRetry, onViewDetail }: QuizHistoryProps) {
   if (history.length === 0) {
     return (
       <div className="bg-card border border-border rounded-2xl p-8 text-center">
@@ -88,6 +89,15 @@ export function QuizHistory({ history, onRetry }: QuizHistoryProps) {
               </p>
             </div>
 
+            {onViewDetail && (
+              <button
+                onClick={() => onViewDetail(item.id)}
+                className="flex-shrink-0 p-2.5 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200"
+                title="Lihat Hasil"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={() => onRetry(item.topic)}
               className="flex-shrink-0 p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-200"

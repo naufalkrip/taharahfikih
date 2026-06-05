@@ -8,6 +8,7 @@ import { Najis } from "./pages/Najis";
 import { QuizHub } from "./pages/quiz/QuizHub";
 import { QuizPlayer } from "./pages/quiz/QuizPlayer";
 import { QuizResults } from "./pages/quiz/QuizResults";
+import { QuizReview } from "./pages/quiz/QuizReview";
 import { Login } from "./modules/auth/pages/Login";
 import { Register } from "./modules/auth/pages/Register";
 import { DashboardLayout } from "./modules/dashboard/components/DashboardLayout";
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "quiz", Component: QuizHub },
       { path: "quiz/:topic", Component: QuizPlayer },
       { path: "quiz/results", Component: QuizResults },
+      { path: "quiz/review/:attemptId", Component: QuizReview },
       { path: "auth/login", Component: Login },
       { path: "auth/register", Component: Register },
     ],
