@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   X,
   Check,
@@ -10,7 +10,6 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { toPng } from "html-to-image";
 import { ShareImageCard } from "./ShareImageCard";
-import type { QuizHistoryItem } from "../../hooks/useQuizHistory";
 
 interface ShareModalProps {
   open: boolean;
@@ -26,8 +25,10 @@ interface ShareModalProps {
 
 export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [scale, setScale] = useState(1);
 
   const shareText = `🏆 Quiz THAVA\n📚 ${result.topicTitle}: ${result.score}/${result.total} (${result.percentage}%)\n🕌 Saya mendapatkan skor ${result.percentage}% pada Quiz THAVA! Coba di: ${typeof window !== "undefined" ? window.location.origin : ""}/quiz`;
 
@@ -39,35 +40,84 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
       name: "WhatsApp",
       url: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
       icon: "💬",
-      color: "bg-green-500 hover:bg-green-600",
     },
     {
       name: "Instagram",
       action: "download",
       icon: "📸",
-      color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600",
       note: "Download gambar, lalu upload ke IG Story/Post",
     },
     {
       name: "TikTok",
       action: "download",
       icon: "🎵",
-      color: "bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700",
       note: "Download gambar, lalu upload ke TikTok",
     },
     {
       name: "Facebook",
       url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`,
       icon: "👍",
-      color: "bg-blue-600 hover:bg-blue-700",
     },
     {
       name: "Twitter / X",
       url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`,
       icon: "🐦",
-      color: "bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600",
     },
   ];
+
+  const linkStyles: Record<string, { background: string; hover: string }> = {
+    WhatsApp: {
+      background: "#25D366",
+      hover: "hover:brightness-110",
+    },
+    Instagram: {
+      background: "linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)",
+      hover: "hover:opacity-90",
+    },
+    TikTok: {
+      background: "#000",
+      hover: "hover:opacity-80 dark:hover:opacity-90",
+    },
+    Facebook: {
+      background: "#1877F2",
+      hover: "hover:brightness-110",
+    },
+    "Twitter / X": {
+      background: "#1DA1F2",
+      hover: "hover:brightness-110",
+    },
+  };
+
+  useEffect(() => {
+    if (!open) {
+      setScale(1);
+      return;
+    }
+
+    const measure = () => {
+      const container = containerRef.current;
+      const card = cardRef.current;
+      if (!container || !card) return;
+
+      const cw = container.clientWidth;
+      const ch = container.clientHeight;
+      const nw = card.scrollWidth;
+      const nh = card.scrollHeight;
+
+      if (nw === 0 || nh === 0) return;
+
+      const s = Math.min(1, cw / nw, ch / nh);
+      setScale(Math.max(0.35, Math.round(s * 100) / 100));
+    };
+
+    requestAnimationFrame(measure);
+
+    const observer = new ResizeObserver(measure);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, [open]);
 
   const handleCopy = async () => {
     try {
@@ -80,8 +130,14 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
   const handleDownload = async () => {
     if (!cardRef.current) return;
     setDownloading(true);
+
+    const card = cardRef.current;
+    const originalTransform = card.style.transform;
+    card.style.transform = "none";
+    await new Promise((r) => setTimeout(r, 50));
+
     try {
-      const dataUrl = await toPng(cardRef.current, {
+      const dataUrl = await toPng(card, {
         quality: 1,
         pixelRatio: 2,
       });
@@ -90,6 +146,8 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
       link.href = dataUrl;
       link.click();
     } catch {}
+
+    card.style.transform = originalTransform;
     setDownloading(false);
   };
 
@@ -108,11 +166,11 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-            className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm sm:max-w-md flex flex-col"
+            style={{ maxHeight: "90vh" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-5 border-b border-border">
+            <div className="flex items-center justify-between p-5 border-b border-border flex-shrink-0">
               <div className="flex items-center gap-2">
                 <Share2 className="w-4 h-4 text-primary" />
                 <h3 className="text-sm font-semibold text-foreground">
@@ -127,38 +185,39 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
               </button>
             </div>
 
-            <div className="p-5 space-y-5">
-              {/* Preview Card */}
-              <div className="flex justify-center">
-                <div className="rounded-xl overflow-hidden shadow-lg" style={{ maxWidth: 320 }}>
-                  <ShareImageCard
-                    ref={cardRef}
-                    topicTitle={result.topicTitle}
-                    score={result.score}
-                    total={result.total}
-                    percentage={result.percentage}
-                    perTopic={perTopic}
-                  />
-                </div>
+            <div
+              ref={containerRef}
+              className="flex-1 min-h-0 flex items-center justify-center overflow-hidden px-5 py-4"
+            >
+              <div
+                style={{
+                  transform: `scale(${scale})`,
+                  transformOrigin: "center center",
+                  flexShrink: 0,
+                }}
+              >
+                <ShareImageCard
+                  ref={cardRef}
+                  topicTitle={result.topicTitle}
+                  score={result.score}
+                  total={result.total}
+                  percentage={result.percentage}
+                  perTopic={perTopic}
+                />
               </div>
+            </div>
 
-              {/* Share Buttons */}
-              <div className="space-y-2">
-                {links.map((link) => (
+            <div className="flex-shrink-0 px-5 pb-5 pt-3 space-y-2 border-t border-border">
+              {links.map((link) => {
+                const style = linkStyles[link.name];
+                return (
                   <div key={link.name}>
                     {link.action === "download" ? (
                       <button
                         onClick={handleDownload}
                         disabled={downloading}
-                        className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-white text-sm font-medium transition-all duration-200"
-                        style={{
-                          background:
-                            link.name === "Instagram"
-                              ? "linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)"
-                              : link.name === "TikTok"
-                              ? "#000"
-                              : undefined,
-                        }}
+                        className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-white text-sm font-medium transition-all duration-200 ${style?.hover ?? ""}`}
+                        style={{ background: style?.background }}
                       >
                         <span className="flex items-center gap-2">
                           <span>{link.icon}</span>
@@ -171,16 +230,8 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-white text-sm font-medium transition-all duration-200"
-                        style={
-                          link.name === "WhatsApp"
-                            ? { background: "#25D366" }
-                            : link.name === "Facebook"
-                            ? { background: "#1877F2" }
-                            : link.name === "Twitter / X"
-                            ? { background: "#1DA1F2" }
-                            : undefined
-                        }
+                        className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-white text-sm font-medium transition-all duration-200 ${style?.hover ?? ""}`}
+                        style={{ background: style?.background }}
                       >
                         <span className="flex items-center gap-2">
                           <span>{link.icon}</span>
@@ -195,33 +246,32 @@ export function ShareModal({ open, onClose, result, perTopic }: ShareModalProps)
                       </p>
                     )}
                   </div>
-                ))}
+                );
+              })}
 
-                {/* Copy Text */}
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-muted/50 transition-all duration-200"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>📋</span>
-                    <span>Salin Teks</span>
-                  </span>
-                  <AnimatePresence mode="wait">
-                    {copied ? (
-                      <motion.span
-                        key="check"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                      >
-                        <Check className="w-4 h-4 text-emerald-500" />
-                      </motion.span>
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </AnimatePresence>
-                </button>
-              </div>
+              <button
+                onClick={handleCopy}
+                className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-muted/50 transition-all duration-200"
+              >
+                <span className="flex items-center gap-2">
+                  <span>📋</span>
+                  <span>Salin Teks</span>
+                </span>
+                <AnimatePresence mode="wait">
+                  {copied ? (
+                    <motion.span
+                      key="check"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                    >
+                      <Check className="w-4 h-4 text-emerald-500" />
+                    </motion.span>
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </AnimatePresence>
+              </button>
             </div>
           </motion.div>
         </motion.div>
