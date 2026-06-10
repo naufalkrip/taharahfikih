@@ -42,6 +42,8 @@ export function DashboardLayout() {
 
   useEffect(() => { setMounted(true); }, []);
 
+  const toggleLang = () => setLang(lang === "id" ? "en" : "id");
+
   const handleLogout = () => {
     logoutUser();
     navigate("/auth/login");
@@ -186,21 +188,23 @@ export function DashboardLayout() {
               >
                 {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
-              <div
-                onClick={() => setLang(lang === "id" ? "en" : "id")}
+              <button
+                type="button"
+                onClick={toggleLang}
                 className="flex items-center cursor-pointer select-none"
+                aria-label="Ganti Bahasa"
               >
-                <div className="relative h-6 w-14 rounded-full bg-muted transition-colors">
+                <div className="relative h-6 w-14 rounded-full bg-muted transition-colors pointer-events-none">
                   <div
                     className={cn(
-                      "absolute top-0.5 flex h-5 w-7 items-center justify-center rounded-full bg-white shadow-sm text-[10px] font-semibold transition-all duration-200",
+                      "absolute top-0.5 flex h-5 w-7 items-center justify-center rounded-full bg-white shadow-sm text-[10px] font-semibold transition-all duration-200 pointer-events-none",
                       lang === "id" ? "left-0.5 text-emerald-600" : "left-[calc(100%-1.875rem)] text-blue-600"
                     )}
                   >
                     {lang === "id" ? "Idn" : "Eng"}
                   </div>
                 </div>
-              </div>
+              </button>
             </div>
           )}
         </header>
