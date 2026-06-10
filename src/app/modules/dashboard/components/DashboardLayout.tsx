@@ -42,8 +42,6 @@ export function DashboardLayout() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const toggleLang = () => setLang(lang === "id" ? "en" : "id");
-
   const handleLogout = () => {
     logoutUser();
     navigate("/auth/login");
