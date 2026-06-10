@@ -1,27 +1,88 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { motion, AnimatePresence } from "motion/react";
-import { Trash2, ToggleLeft, ToggleRight, Loader2, ExternalLink, Share2, Filter } from "lucide-react";
-import { getMyQuizzes, deleteQuiz, toggleQuizStatus } from "../../quiz/services/quiz.service";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { motion } from "motion/react";
+import { getMyQuizzes, deleteQuiz, toggleQuizStatus, getQuestionCounts, getAttemptStats } from "../../quiz/services/quiz.service";
 import type { Quiz } from "../../quiz/services/quiz.service";
-import { formatDate } from "../../../lib/utils";
+import { getAllTeacherAttempts } from "../../quiz/services/quiz.service";
 import { ShareLinkModal } from "../../../components/quiz/ShareLinkModal";
+import {
+  QuizListHeader,
+  StatCards,
+  QuizFilterBar,
+  QuizPerformanceInsights,
+  QuizDataTable,
+  DeleteQuizDialog,
+  CreateQuizModal,
+} from "../components/quiz-list";
+
+interface FilterValues {
+  search: string;
+  kelas: string;
+  materi: string;
+  status: string;
+  sort: string;
+}
+
+const defaultFilters: FilterValues = {
+  search: "",
+  kelas: "",
+  materi: "",
+  status: "",
+  sort: "newest",
+};
 
 export function QuizList() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [questionCounts, setQuestionCounts] = useState<Record<string, number>>({});
+  const [attemptCounts, setAttemptCounts] = useState<Record<string, number>>({});
+  const [allAttempts, setAllAttempts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterValues>(defaultFilters);
   const [shareQuiz, setShareQuiz] = useState<{ slug: string; title: string } | null>(null);
-  const [filterCategory, setFilterCategory] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
-  useEffect(() => { load(); }, []);
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    const data = await getMyQuizzes();
-    setQuizzes(data);
+    try {
+      const data = await getMyQuizzes();
+      setQuizzes(data);
+
+      const ids = data.map((q) => q.id);
+      if (ids.length > 0) {
+        const [qCounts, aStats, sessions] = await Promise.all([
+          getQuestionCounts(ids),
+          getAttemptStats(ids),
+          getAllTeacherAttempts(),
+        ]);
+        setQuestionCounts(qCounts);
+        const aCounts: Record<string, number> = {};
+        for (const id of ids) aCounts[id] = aStats[id]?.count ?? 0;
+        setAttemptCounts(aCounts);
+        setAllAttempts(sessions);
+      } else {
+        setQuestionCounts({});
+        setAttemptCounts({});
+        setAllAttempts([]);
+      }
+    } catch (err) {
+      console.error("Gagal memuat quiz", err);
+    }
     setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleToggleStatus = async (id: string) => {
+    const quiz = quizzes.find((q) => q.id === id);
+    if (!quiz) return;
+    const next = !quiz.is_active;
+    setQuizzes((prev) => prev.map((q) => (q.id === id ? { ...q, is_active: next } : q)));
+    try {
+      await toggleQuizStatus(id, next);
+    } catch {
+      setQuizzes((prev) => prev.map((q) => (q.id === id ? { ...q, is_active: !next } : q)));
+    }
   };
 
   const handleDelete = async () => {
@@ -37,124 +98,122 @@ export function QuizList() {
     setConfirmDelete(null);
   };
 
-  const handleToggle = async (id: string, current: boolean) => {
-    await toggleQuizStatus(id, !current);
-    load();
-  };
+  const stats = useMemo(() => {
+    const totalQuiz = quizzes.length;
+    const activeQuiz = quizzes.filter((q) => q.is_active).length;
+    const totalSoal = Object.values(questionCounts).reduce((a, b) => a + b, 0);
+    const totalPengerjaan = Object.values(attemptCounts).reduce((a, b) => a + b, 0);
+    const avgNilai = allAttempts.length > 0
+      ? Math.round(allAttempts.reduce((sum: number, s: any) => sum + Number(s.percentage), 0) / allAttempts.length)
+      : 0;
+    return { totalQuiz, activeQuiz, totalSoal, totalPengerjaan, avgNilai };
+  }, [quizzes, questionCounts, attemptCounts, allAttempts]);
 
-  const categories = [...new Set(quizzes.map((q) => q.category).filter(Boolean))];
-  const filtered = filterCategory ? quizzes.filter((q) => q.category === filterCategory) : quizzes;
+  const performance = useMemo(() => {
+    if (quizzes.length === 0 || allAttempts.length === 0) return null;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-40">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+    const populerEntry = Object.entries(attemptCounts).sort(([, a], [, b]) => b - a)[0];
+    const populerQuiz = populerEntry
+      ? quizzes.find((q) => q.id === populerEntry[0])?.title ?? "-"
+      : "-";
+
+    const tingkatPengerjaan = allAttempts.length > 0 && quizzes.length > 0
+      ? `${Math.round((allAttempts.length / quizzes.length) * 100)}%`
+      : "0%";
+
+    const sortedByScore = [...allAttempts].sort((a: any, b: any) => Number(b.percentage) - Number(a.percentage));
+    const nilaiTertinggi = sortedByScore.length > 0
+      ? `${sortedByScore[0].percentage}%`
+      : "-";
+
+    const rataRata = `${stats.avgNilai}%`;
+
+    return { populerQuiz, tingkatPengerjaan, nilaiTertinggi, rataRata };
+  }, [quizzes, attemptCounts, allAttempts, stats.avgNilai]);
+
+  const filtered = useMemo(() => {
+    let result = [...quizzes];
+
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      result = result.filter(
+        (r) => r.title.toLowerCase().includes(q) || (r.description && r.description.toLowerCase().includes(q))
+      );
+    }
+    if (filters.kelas && filters.kelas !== "all") {
+      result = result.filter((r) => r.category === filters.kelas);
+    }
+    if (filters.materi && filters.materi !== "all") {
+      result = result.filter((r) => r.topic === filters.materi);
+    }
+    if (filters.status) {
+      if (filters.status === "active") result = result.filter((r) => r.is_active);
+      else if (filters.status === "inactive") result = result.filter((r) => !r.is_active);
+    }
+    if (filters.sort) {
+      result.sort((a, b) => {
+        switch (filters.sort) {
+          case "oldest": return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          case "az": return a.title.localeCompare(b.title);
+          case "za": return b.title.localeCompare(a.title);
+          default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }
+      });
+    }
+    return result;
+  }, [quizzes, filters]);
+
+  const kelasOptions = useMemo(
+    () => [...new Set(quizzes.map((q) => q.category).filter(Boolean))] as string[],
+    [quizzes]
+  );
+  const materiOptions = useMemo(
+    () => [...new Set(quizzes.map((q) => q.topic).filter(Boolean))] as string[],
+    [quizzes]
+  );
+
+  const hasFilters = filters.search || filters.kelas || filters.materi || filters.status || filters.sort !== "newest";
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Daftar Soal</h1>
-        <p className="text-sm text-muted-foreground mt-1">Kelola quiz yang telah Anda buat</p>
-      </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-6xl mx-auto space-y-5 sm:space-y-6"
+    >
+      <QuizListHeader onCreateQuiz={() => setCreateModalOpen(true)} />
 
-      {/* Filter */}
-      {categories.length > 0 && (
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          >
-            <option value="">Semua Kelas</option>
-            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-      )}
+      <StatCards
+        totalQuiz={stats.totalQuiz}
+        activeQuiz={stats.activeQuiz}
+        totalSoal={stats.totalSoal}
+        totalPengerjaan={stats.totalPengerjaan}
+        avgNilai={stats.avgNilai}
+        loading={loading}
+      />
 
-      {filtered.length === 0 ? (
-        <div className="bg-card border border-border rounded-2xl p-10 text-center">
-          <p className="text-muted-foreground text-sm mb-4">Belum ada quiz</p>
-          <Link
-            to="/dashboard/create"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-medium"
-          >
-            Buat Quiz Baru
-          </Link>
-        </div>
-      ) : (
-        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Judul</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground hidden sm:table-cell">Materi</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground hidden sm:table-cell">Kelas</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground hidden md:table-cell">Dibuat</th>
-                  <th className="text-center px-4 py-3 font-semibold text-foreground">Status</th>
-                  <th className="text-right px-4 py-3 font-semibold text-foreground">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((q) => (
-                  <tr key={q.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-foreground">{q.title}</p>
-                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">{q.description}</p>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{q.topic}</td>
-                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{q.category || "-"}</td>
-                    <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{formatDate(q.created_at)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => handleToggle(q.id, q.is_active)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                          q.is_active
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                        }`}
-                      >
-                        {q.is_active ? <ToggleRight className="w-3 h-3" /> : <ToggleLeft className="w-3 h-3" />}
-                        {q.is_active ? "Aktif" : "Nonaktif"}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => setShareQuiz({ slug: q.slug, title: q.title })}
-                          className="p-2 rounded-lg text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
-                          title="Bagikan"
-                        >
-                          <Share2 className="w-4 h-4" />
-                        </button>
-                        <a
-                          href={`/s/${q.slug}`}
-                          target="_blank"
-                          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                          title="Lihat"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                        <button
-                          onClick={() => setConfirmDelete(q.id)}
-                          className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                          title="Hapus"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      <QuizFilterBar
+        values={filters}
+        onChange={setFilters}
+        onReset={() => setFilters(defaultFilters)}
+        kelasOptions={kelasOptions}
+        materiOptions={materiOptions}
+      />
+
+      <QuizPerformanceInsights data={performance} loading={loading} />
+
+      <QuizDataTable
+        quizzes={filtered}
+        questionCounts={questionCounts}
+        attemptCounts={attemptCounts}
+        loading={loading}
+        hasFilters={hasFilters}
+        onResetFilters={() => setFilters(defaultFilters)}
+        onShare={(q) => setShareQuiz({ slug: q.slug, title: q.title })}
+        onDelete={(id) => setConfirmDelete(id)}
+        onCreateQuiz={() => setCreateModalOpen(true)}
+        onToggleStatus={handleToggleStatus}
+      />
 
       {shareQuiz && (
         <ShareLinkModal
@@ -165,49 +224,21 @@ export function QuizList() {
         />
       )}
 
-      {/* Confirmation Modal */}
-      <AnimatePresence>
-        {confirmDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={() => !deleting && setConfirmDelete(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-sm font-semibold text-foreground mb-2">Hapus Quiz</h3>
-              <p className="text-xs text-muted-foreground mb-5">
-                Apakah kamu yakin ingin menghapus quiz ini? Semua data murid yang terkait juga akan ikut terhapus.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setConfirmDelete(null)}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 disabled:opacity-40 transition-colors inline-flex items-center gap-2"
-                >
-                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  {deleting ? "Menghapus..." : "Hapus"}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      <DeleteQuizDialog
+        open={!!confirmDelete}
+        onClose={() => !deleting && setConfirmDelete(null)}
+        onConfirm={handleDelete}
+        deleting={deleting}
+      />
+
+      <CreateQuizModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSuccess={() => {
+          setCreateModalOpen(false);
+          load();
+        }}
+      />
+    </motion.div>
   );
 }

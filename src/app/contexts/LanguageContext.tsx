@@ -27,6 +27,12 @@ const translations: Record<string, Record<Language, string>> = {
     en: "A complete guide to thaharah (purification) in Islamic Fiqh — compiled based on commonly used fiqh references for student and lecturer learning.",
   },
   "footer.tagline": { id: "Panduan Dasar Thaharah", en: "Basic Purification Guide" },
+  "notFound.title": { id: "Halaman Tidak Ditemukan", en: "Page Not Found" },
+  "notFound.desc": {
+    id: "Maaf, halaman yang Anda cari tidak tersedia atau mungkin telah dipindahkan.",
+    en: "Sorry, the page you are looking for is not available or may have been moved.",
+  },
+  "notFound.back": { id: "Kembali ke Dashboard", en: "Back to Dashboard" },
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {

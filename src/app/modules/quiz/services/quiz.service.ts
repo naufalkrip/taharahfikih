@@ -278,3 +278,47 @@ export async function getQuizCategories(): Promise<string[]> {
   const unique = [...new Set((data ?? []).map((d) => d.category).filter(Boolean))];
   return unique;
 }
+
+export async function getQuestionCounts(quizIds: string[]): Promise<Record<string, number>> {
+  if (quizIds.length === 0) return {};
+
+  const { data } = await supabase
+    .from("questions")
+    .select("quiz_id")
+    .in("quiz_id", quizIds);
+
+  const counts: Record<string, number> = {};
+  for (const id of quizIds) counts[id] = 0;
+  for (const row of data ?? []) {
+    counts[row.quiz_id] = (counts[row.quiz_id] || 0) + 1;
+  }
+  return counts;
+}
+
+export async function getAttemptStats(quizIds: string[]): Promise<Record<string, { count: number; avgScore: number }>> {
+  if (quizIds.length === 0) return {};
+
+  const { data } = await supabase
+    .from("student_attempts")
+    .select("quiz_id, percentage")
+    .in("quiz_id", quizIds);
+
+  const sums: Record<string, { count: number; total: number }> = {};
+  for (const id of quizIds) sums[id] = { count: 0, total: 0 };
+  for (const row of data ?? []) {
+    if (sums[row.quiz_id]) {
+      sums[row.quiz_id].count += 1;
+      sums[row.quiz_id].total += Number(row.percentage);
+    }
+  }
+
+  const result: Record<string, { count: number; avgScore: number }> = {};
+  for (const id of quizIds) {
+    const s = sums[id];
+    result[id] = {
+      count: s.count,
+      avgScore: s.count > 0 ? Math.round(s.total / s.count) : 0,
+    };
+  }
+  return result;
+}

@@ -1,31 +1,43 @@
-import { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router";
-import { Search, Loader2, Eye, ChevronDown, ChevronRight, BookOpen, Users, Trash2 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { getMyQuizzes, getAllTeacherAttempts, deleteAttempt } from "../../quiz/services/quiz.service";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { motion } from "motion/react";
+import { BookOpen } from "lucide-react";
+import { getMyQuizzes, getAllTeacherAttempts, getQuizQuestions } from "../../quiz/services/quiz.service";
 import type { Quiz } from "../../quiz/services/quiz.service";
-import { formatTime, formatDate } from "../../../lib/utils";
+import { generateQuizExportPDF } from "../../../utils/generateQuizExportPDF";
+import {
+  NilaiHeader,
+  NilaiStatCards,
+  NilaiFilterBar,
+  NilaiQuizCard,
+  NilaiSidebar,
+} from "../components/nilai";
 
 export function StudentResults() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [expandedQuiz, setExpandedQuiz] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [filterKelas, setFilterKelas] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
+  const [exportingAll, setExportingAll] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const [exportingCSV, setExportingCSV] = useState(false);
+  const [downloadingQuiz, setDownloadingQuiz] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getMyQuizzes(), getAllTeacherAttempts()]).then(
-      ([q, a]) => {
-        setQuizzes(q);
-        setAttempts(a);
-        setLoading(false);
-      },
+      ([q, a]) => { setQuizzes(q); setAttempts(a); setLoading(false); },
     );
   }, []);
 
-  const categories = useMemo(() => {
+  // --- Data computations ---
+
+  const uniqueStudents = useMemo(
+    () => [...new Set(attempts.map((a: any) => a.student_name).filter(Boolean))],
+    [attempts],
+  );
+
+  const classMap = useMemo(() => {
     const map: Record<string, Quiz[]> = {};
     for (const q of quizzes) {
       const cat = q.category || "Tanpa Kelas";
@@ -38,264 +50,202 @@ export function StudentResults() {
   const attemptsByQuiz = useMemo(() => {
     const map: Record<string, any[]> = {};
     for (const a of attempts) {
-      const qid = a.quiz_id;
-      if (!map[qid]) map[qid] = [];
-      map[qid].push(a);
+      if (!map[a.quiz_id]) map[a.quiz_id] = [];
+      map[a.quiz_id].push(a);
     }
     return map;
   }, [attempts]);
 
-  const toggleQuiz = (quizId: string) => {
-    setExpandedQuiz((prev) => (prev === quizId ? null : quizId));
-  };
+  const stats = useMemo(() => {
+    const pcts = attempts.map((a: any) => Number(a.percentage));
+    return {
+      totalSiswa: uniqueStudents.length,
+      totalQuiz: quizzes.length,
+      rataRata: pcts.length > 0 ? Math.round(pcts.reduce((s, v) => s + v, 0) / pcts.length) : 0,
+      nilaiTertinggi: pcts.length > 0 ? Math.round(Math.max(...pcts)) : 0,
+    };
+  }, [uniqueStudents, quizzes, attempts]);
 
-  const getScoreColor = (pct: number) => {
-    if (pct >= 85) return "text-emerald-600";
-    if (pct >= 70) return "text-blue-600";
-    if (pct >= 50) return "text-amber-600";
-    return "text-red-500";
-  };
-
-  const avgScore = (items: any[]) => {
-    const total = items.reduce((s, a) => s + Number(a.percentage), 0);
-    return items.length > 0 ? Math.round(total / items.length) : 0;
-  };
-
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    setDeleting(true);
-    try {
-      await deleteAttempt(confirmDelete);
-      setAttempts((prev) => prev.filter((a) => a.id !== confirmDelete));
-    } catch (err) {
-      console.error("Gagal menghapus", err);
+  const quizAnalyticsMap = useMemo(() => {
+    const result: Record<string, { totalSiswa: number; sudahMengerjakan: number; rataRataNilai: number; nilaiTertinggi: number }> = {};
+    for (const q of quizzes) {
+      const qa = attemptsByQuiz[q.id] || [];
+      const pcts = qa.map((a: any) => Number(a.percentage));
+      const avg = pcts.length > 0 ? Math.round(pcts.reduce((s, v) => s + v, 0) / pcts.length) : 0;
+      const highest = pcts.length > 0 ? Math.round(Math.max(...pcts)) : 0;
+      const unique = new Set(qa.map((a: any) => a.student_name).filter(Boolean));
+      result[q.id] = { totalSiswa: unique.size, sudahMengerjakan: qa.length, rataRataNilai: avg, nilaiTertinggi: highest };
     }
-    setDeleting(false);
-    setConfirmDelete(null);
-  };
+    return result;
+  }, [quizzes, attemptsByQuiz]);
 
-  const sortedAttempts = (quizAttempts: any[]) => {
-    return [...quizAttempts].sort(
-      (a, b) => (a.student_name || "").localeCompare(b.student_name || ""),
-    );
-  };
+  const leaderboard = useMemo(() => {
+    const best: Record<string, number> = {};
+    for (const a of attempts) {
+      const name = a.student_name;
+      if (!name) continue;
+      if (!best[name] || Number(a.percentage) > best[name]) best[name] = Number(a.percentage);
+    }
+    return Object.entries(best)
+      .map(([name, percentage]) => ({ name, percentage }))
+      .sort((a, b) => b.percentage - a.percentage)
+      .slice(0, 5);
+  }, [attempts]);
+
+  const kelasOptions = useMemo(
+    () => [...new Set(quizzes.map((q) => q.category).filter(Boolean))] as string[],
+    [quizzes],
+  );
+
+  const filteredQuizzes = useMemo(() => {
+    let r = [...quizzes];
+    if (search) {
+      const q = search.toLowerCase();
+      r = r.filter((x) => x.title.toLowerCase().includes(q) || (x.description && x.description.toLowerCase().includes(q)));
+    }
+    if (filterKelas !== "all") r = r.filter((x) => x.category === filterKelas);
+    if (sortBy === "score") r.sort((a, b) => (quizAnalyticsMap[b.id]?.rataRataNilai ?? 0) - (quizAnalyticsMap[a.id]?.rataRataNilai ?? 0));
+    else if (sortBy === "completion") r.sort((a, b) => (quizAnalyticsMap[b.id]?.sudahMengerjakan ?? 0) - (quizAnalyticsMap[a.id]?.sudahMengerjakan ?? 0));
+    else r.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return r;
+  }, [quizzes, search, filterKelas, sortBy, quizAnalyticsMap]);
+
+  // --- Actions ---
+
+  const handleExportAll = useCallback(async () => {
+    setExportingAll(true);
+    try {
+      for (const quiz of quizzes) {
+        const questions = await getQuizQuestions(quiz.id);
+        generateQuizExportPDF(quiz.title, quiz.topic, quiz.category, questions, attemptsByQuiz[quiz.id] || []);
+      }
+    } catch (err) { console.error("Gagal export PDF", err); }
+    setExportingAll(false);
+  }, [quizzes, attemptsByQuiz]);
+
+  const handleDownloadQuiz = useCallback(async (quiz: Quiz) => {
+    setDownloadingQuiz(quiz.id);
+    try {
+      const questions = await getQuizQuestions(quiz.id);
+      generateQuizExportPDF(quiz.title, quiz.topic, quiz.category, questions, attemptsByQuiz[quiz.id] || []);
+    } catch (err) { console.error("Gagal download PDF", err); }
+    setDownloadingQuiz(null);
+  }, [attemptsByQuiz]);
+
+  const handleDetail = useCallback((quiz: Quiz) => {
+    const el = document.getElementById(`quiz-${quiz.id}`);
+    el?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  const handleExportPDF = useCallback(async () => {
+    setExportingPDF(true);
+    await handleExportAll();
+    setExportingPDF(false);
+  }, [handleExportAll]);
+
+  const handleExportCSV = useCallback(async () => {
+    setExportingCSV(true);
+    try {
+      const headers = ["Nama Siswa", "Quiz", "Nilai", "Persentase", "Kelas", "Waktu"];
+      const rows = attempts.map((a: any) => [
+        a.student_name || "", a.quizzes?.title || "", a.score || 0,
+        `${Math.round(Number(a.percentage))}%`, a.student_class || "", a.created_at || "",
+      ]);
+      const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nilai-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { console.error("Gagal export CSV", err); }
+    setExportingCSV(false);
+  }, [attempts]);
+
+  const hasData = uniqueStudents.length > 0;
+
+  // --- Render ---
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-40">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="h-8 w-48 rounded-lg bg-muted animate-pulse" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (quizzes.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-4">
+        <NilaiHeader onExportAll={handleExportAll} exportingAll={false} hasData={false} />
+        <div className="bg-card border border-border rounded-xl p-12 text-center">
+          <div className="w-14 h-14 rounded-xl bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="w-7 h-7 text-emerald-400" />
+          </div>
+          <h3 className="text-base font-semibold text-foreground mb-1">Belum Ada Data Nilai</h3>
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto">Nilai siswa akan muncul setelah mereka menyelesaikan quiz.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Hasil Murid</h1>
-        <p className="text-sm text-muted-foreground mt-1">Pantau hasil belajar murid per kelas dan per quiz</p>
-      </div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto space-y-4">
+      <NilaiHeader onExportAll={handleExportAll} exportingAll={exportingAll} hasData={hasData} />
 
-      {quizzes.length === 0 ? (
-        <div className="bg-card border border-border rounded-2xl p-10 text-center">
-          <p className="text-muted-foreground text-sm">Belum ada quiz yang dibuat</p>
+      <NilaiStatCards totalSiswa={stats.totalSiswa} totalQuiz={stats.totalQuiz} rataRata={stats.rataRata} nilaiTertinggi={stats.nilaiTertinggi} loading={false} />
+
+      <NilaiFilterBar
+        search={search} onSearchChange={setSearch}
+        kelasOptions={kelasOptions} filterKelas={filterKelas} onKelasChange={setFilterKelas}
+        sortBy={sortBy} onSortChange={setSortBy}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3 space-y-4">
+          {filteredQuizzes.length === 0 ? (
+            <div className="bg-card border border-border rounded-xl p-8 text-center">
+              <p className="text-sm text-muted-foreground">Tidak ada quiz yang cocok.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {filteredQuizzes.map((q, i) => {
+                const a = quizAnalyticsMap[q.id] || { totalSiswa: 0, sudahMengerjakan: 0, rataRataNilai: 0, nilaiTertinggi: 0 };
+                return (
+                  <NilaiQuizCard
+                    key={q.id}
+                    quiz={q}
+                    totalSiswa={a.totalSiswa}
+                    sudahMengerjakan={a.sudahMengerjakan}
+                    rataRataNilai={a.rataRataNilai}
+                    nilaiTertinggi={a.nilaiTertinggi}
+                    onDownload={handleDownloadQuiz}
+                    onDetail={handleDetail}
+                    downloading={downloadingQuiz === q.id}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
-      ) : (
-        <>
-          {/* Search */}
-          <div className="relative max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari quiz atau nama siswa..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+
+        <div className="lg:col-span-1">
+          <div className="lg:sticky lg:top-24">
+            <NilaiSidebar
+              leaderboard={leaderboard}
+              onExportPDF={handleExportPDF}
+              onExportCSV={handleExportCSV}
+              exportingPDF={exportingPDF}
+              exportingCSV={exportingCSV}
+              hasData={hasData}
             />
           </div>
-
-          {/* Grouped by Category */}
-          {Object.entries(categories).map(([category, catQuizzes]) => {
-            const filtered = catQuizzes.filter((q) =>
-              q.title.toLowerCase().includes(search.toLowerCase()),
-            );
-            if (filtered.length === 0) return null;
-
-            return (
-              <section key={category}>
-                <h2 className="text-base font-bold text-foreground mb-3 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-primary" />
-                  {category}
-                </h2>
-                <div className="space-y-2">
-                  {filtered.map((quiz) => {
-                    const quizAttempts = attemptsByQuiz[quiz.id] || [];
-                    const isOpen = expandedQuiz === quiz.id;
-                    const sorted = sortedAttempts(quizAttempts);
-                    const filteredSorted = sorted.filter((a) => {
-                      if (!search) return true;
-                      return a.student_name?.toLowerCase().includes(search.toLowerCase());
-                    });
-
-                    return (
-                      <div
-                        key={quiz.id}
-                        className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm"
-                      >
-                        {/* Quiz Header */}
-                        <button
-                          onClick={() => toggleQuiz(quiz.id)}
-                          className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/20 transition-colors"
-                        >
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
-                            <BookOpen className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">
-                              {quiz.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {quizAttempts.length} siswa · Rata-rata {avgScore(quizAttempts)}%
-                              {quiz.topic && ` · ${quiz.topic}`}
-                            </p>
-                          </div>
-                          {isOpen ? (
-                            <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          )}
-                        </button>
-
-                        {/* Student Table */}
-                        <AnimatePresence>
-                          {isOpen && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                              className="overflow-hidden"
-                            >
-                              {filteredSorted.length === 0 ? (
-                                <div className="px-5 pb-4 text-xs text-muted-foreground">
-                                  Belum ada siswa yang mengerjakan quiz ini
-                                </div>
-                              ) : (
-                                <div className="overflow-x-auto px-5 pb-4">
-                                  <table className="w-full text-sm">
-                                    <thead>
-                                      <tr className="border-b border-border">
-                                        <th className="text-left py-2 pr-3 font-semibold text-foreground text-xs">#</th>
-                                        <th className="text-left py-2 pr-3 font-semibold text-foreground text-xs">Nama</th>
-                                        <th className="text-left py-2 pr-3 font-semibold text-foreground text-xs hidden sm:table-cell">No</th>
-                                        <th className="text-left py-2 pr-3 font-semibold text-foreground text-xs hidden sm:table-cell">Kelas</th>
-                                        <th className="text-center py-2 pr-3 font-semibold text-foreground text-xs">Nilai</th>
-                                        <th className="text-left py-2 font-semibold text-foreground text-xs">Waktu</th>
-                                        <th className="text-right py-2 font-semibold text-foreground text-xs">Aksi</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {filteredSorted.map((a, i) => (
-                                        <tr
-                                          key={a.id}
-                                          className="border-b border-border/50 hover:bg-muted/20 transition-colors"
-                                        >
-                                          <td className="py-2.5 pr-3 text-muted-foreground text-xs">{i + 1}</td>
-                                          <td className="py-2.5 pr-3">
-                                            <p className="font-medium text-foreground text-sm">{a.student_name}</p>
-                                          </td>
-                                          <td className="py-2.5 pr-3 text-muted-foreground text-xs hidden sm:table-cell">
-                                            {a.student_number || "-"}
-                                          </td>
-                                          <td className="py-2.5 pr-3 text-muted-foreground text-xs hidden sm:table-cell">
-                                            {a.student_class || "-"}
-                                          </td>
-                                          <td className="py-2.5 pr-3 text-center">
-                                            <span className={`text-sm font-bold ${getScoreColor(Number(a.percentage))}`}>
-                                              {Math.round(Number(a.percentage))}%
-                                            </span>
-                                          </td>
-                                          <td className="py-2.5 pr-3 text-muted-foreground text-xs">
-                                            {formatTime(a.time_spent)}
-                                          </td>
-                                          <td className="py-2.5 text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                              <Link
-                                                to={`/dashboard/results/${a.id}`}
-                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
-                                              >
-                                                <Eye className="w-3 h-3" />
-                                                Detail
-                                              </Link>
-                                              <button
-                                                onClick={() => setConfirmDelete(a.id)}
-                                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                                                title="Hapus"
-                                              >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                              </button>
-                                            </div>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              )}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
-        </>
-      )}
-
-      {/* Confirmation Modal */}
-      <AnimatePresence>
-        {confirmDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={() => !deleting && setConfirmDelete(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-sm font-semibold text-foreground mb-2">Hapus Data Murid</h3>
-              <p className="text-xs text-muted-foreground mb-5">
-                Apakah kamu yakin ingin menghapus data murid ini? Tindakan ini tidak dapat dibatalkan.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setConfirmDelete(null)}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 disabled:opacity-40 transition-colors inline-flex items-center gap-2"
-                >
-                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  {deleting ? "Menghapus..." : "Hapus"}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
