@@ -18,6 +18,7 @@ import { DashboardOverview } from "./modules/dashboard/pages/Overview";
 import { QuizList } from "./modules/dashboard/pages/QuizList";
 import { StudentResults } from "./modules/dashboard/pages/StudentResults";
 import { StudentDetail } from "./modules/dashboard/pages/StudentDetail";
+import { QuizAttemptList } from "./modules/dashboard/pages/QuizAttemptList";
 import { Settings } from "./modules/dashboard/pages/Settings";
 import { StudentQuiz } from "./modules/student/pages/StudentQuiz";
 import { isAuthenticated } from "./modules/auth/services/auth.service";
@@ -99,6 +100,7 @@ export const router = createBrowserRouter([
       { index: true, Component: DashboardOverview },
       { path: "quizzes", Component: QuizList },
       { path: "results", Component: StudentResults },
+      { path: "results/quiz/:quizId", Component: QuizAttemptList },
       { path: "results/:id", Component: StudentDetail },
       { path: "settings", Component: Settings },
     ],

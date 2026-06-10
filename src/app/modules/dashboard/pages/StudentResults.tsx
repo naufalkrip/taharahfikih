@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { BookOpen } from "lucide-react";
 import { getMyQuizzes, getAllTeacherAttempts, getQuizQuestions } from "../../quiz/services/quiz.service";
@@ -13,6 +14,7 @@ import {
 } from "../components/nilai";
 
 export function StudentResults() {
+  const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,9 +135,8 @@ export function StudentResults() {
   }, [attemptsByQuiz]);
 
   const handleDetail = useCallback((quiz: Quiz) => {
-    const el = document.getElementById(`quiz-${quiz.id}`);
-    el?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+    navigate(`/dashboard/results/quiz/${quiz.id}`);
+  }, [navigate]);
 
   const handleExportPDF = useCallback(async () => {
     setExportingPDF(true);
