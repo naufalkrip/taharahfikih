@@ -176,14 +176,6 @@ export function Ghusl() {
             keterangan: "Ringkasan fikih Syafi'i tentang mandi wajib, rukun, dan sunnahnya.",
             keteranganEn: "Summary of Shafi'i jurisprudence on obligatory ghusl, its pillars, and its sunnah acts.",
           },
-          {
-            title: "Ala NU",
-            titleEn: "Ala NU",
-            sumber: "-",
-            sumberEn: "-",
-            keterangan: "-",
-            keteranganEn: "-",
-          },
         ]}
       />
 

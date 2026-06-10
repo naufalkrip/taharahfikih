@@ -58,7 +58,7 @@ export function DashboardLayout() {
         )}
       </div>
 
-      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-2.5 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -68,10 +68,10 @@ export function DashboardLayout() {
               to={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-l-4 border-emerald-500 rounded-r-xl font-semibold shadow-sm"
+                  : "text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 rounded-xl"
               )}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
@@ -81,10 +81,10 @@ export function DashboardLayout() {
         })}
       </nav>
 
-      <div className="px-2 py-4 border-t border-border">
+      <div className="px-2.5 py-4 border-t border-border">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200"
+          className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
           {!collapsed && <span>Keluar</span>}
@@ -98,7 +98,7 @@ export function DashboardLayout() {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden md:flex flex-col fixed left-0 top-0 bottom-0 border-r border-border bg-card transition-all duration-300 z-40",
+          "hidden md:flex flex-col fixed left-0 top-0 bottom-0 border-r border-border bg-card shadow-[1px_0_15px_rgba(0,0,0,0.04)] transition-all duration-300 z-40",
           collapsed ? "w-16" : "w-60"
         )}
       >

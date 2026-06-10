@@ -198,14 +198,6 @@ export function Tayammum() {
             keterangan: "Ringkasan fikih Syafi'i tentang tayammum dan tata caranya.",
             keteranganEn: "Summary of Shafi'i jurisprudence on tayammum and its procedure.",
           },
-          {
-            title: "Ala NU",
-            titleEn: "Ala NU",
-            sumber: "-",
-            sumberEn: "-",
-            keterangan: "-",
-            keteranganEn: "-",
-          },
         ]}
       />
 

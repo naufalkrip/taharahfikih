@@ -163,14 +163,6 @@ export function Wudhu() {
             keterangan: "Ringkasan fikih Syafi'i tentang wudhu dan tata caranya.",
             keteranganEn: "Summary of Shafi'i jurisprudence on wudhu and its procedures.",
           },
-          {
-            title: "Ala NU",
-            titleEn: "NU Online",
-            sumber: "-",
-            sumberEn: "-",
-            keterangan: "-",
-            keteranganEn: "-",
-          },
         ]}
       />
 

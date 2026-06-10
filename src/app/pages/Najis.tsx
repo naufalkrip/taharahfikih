@@ -324,14 +324,6 @@ export function Najis() {
             keterangan: "Klasifikasi najis dan cara mensucikannya dalam fikih Syafi'i.",
             keteranganEn: "Classification of impurity and methods of purification in Shafi'i fiqh.",
           },
-          {
-            title: "Ala NU",
-            titleEn: "Ala NU",
-            sumber: "-",
-            sumberEn: "-",
-            keterangan: "-",
-            keteranganEn: "-",
-          },
         ]}
       />
 
