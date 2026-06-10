@@ -1,4 +1,4 @@
-import { BookOpen, Users, TrendingUp, Download, Eye, Clock } from "lucide-react";
+import { BookOpen, Users, TrendingUp, Download, Clock } from "lucide-react";
 import type { Quiz } from "../../../quiz/services/quiz.service";
 import { formatDate } from "../../../../lib/utils";
 
@@ -75,8 +75,8 @@ export function NilaiQuizCard({
           {formatDate(quiz.created_at)}
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={() => onDetail(quiz)} className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Detail">
-            <Eye className="w-3.5 h-3.5" />
+          <button onClick={() => onDetail(quiz)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-600 hover:bg-emerald-50 border border-emerald-200 transition-colors">
+            Lihat Hasil
           </button>
           <button onClick={() => onDownload(quiz)} disabled={downloading} className="p-1.5 rounded-lg text-muted-foreground hover:text-green-600 hover:bg-green-50 transition-colors disabled:opacity-40" title="Download PDF">
             <Download className="w-3.5 h-3.5" />
