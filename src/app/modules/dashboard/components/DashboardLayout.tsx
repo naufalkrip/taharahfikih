@@ -179,34 +179,40 @@ export function DashboardLayout() {
             <Droplets className="w-5 h-5 text-emerald-600" />
             <span className="font-heading font-bold text-sm">Dashboard</span>
           </div>
-          {mounted && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {mounted && (
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                 aria-label="Toggle theme"
+                type="button"
               >
                 {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
-              <button
-                type="button"
-                onClick={toggleLang}
-                className="flex items-center cursor-pointer select-none"
-                aria-label="Ganti Bahasa"
-              >
-                <div className="relative h-6 w-14 rounded-full bg-muted transition-colors pointer-events-none">
-                  <div
-                    className={cn(
-                      "absolute top-0.5 flex h-5 w-7 items-center justify-center rounded-full bg-white shadow-sm text-[10px] font-semibold transition-all duration-200 pointer-events-none",
-                      lang === "id" ? "left-0.5 text-emerald-600" : "left-[calc(100%-1.875rem)] text-blue-600"
-                    )}
-                  >
-                    {lang === "id" ? "Idn" : "Eng"}
-                  </div>
+            )}
+            <div
+              onClick={() => {
+                const next = lang === "id" ? "en" : "id";
+                localStorage.setItem("lang", next);
+                setLang(next);
+              }}
+              className="flex items-center cursor-pointer select-none"
+              role="button"
+              tabIndex={0}
+              aria-label="Ganti Bahasa"
+            >
+              <div className="relative h-6 w-14 rounded-full bg-muted transition-colors">
+                <div
+                  className={cn(
+                    "absolute top-0.5 flex h-5 w-7 items-center justify-center rounded-full bg-white shadow-sm text-[10px] font-semibold transition-all duration-200",
+                    lang === "id" ? "left-0.5 text-emerald-600" : "left-[calc(100%-1.875rem)] text-blue-600"
+                  )}
+                >
+                  {lang === "id" ? "Idn" : "Eng"}
                 </div>
-              </button>
+              </div>
             </div>
-          )}
+          </div>
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
