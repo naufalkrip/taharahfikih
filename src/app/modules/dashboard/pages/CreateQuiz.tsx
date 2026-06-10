@@ -48,8 +48,8 @@ const DIFFICULTY_OPTIONS = [
 
 const STATS_COLORS = [
   "from-emerald-500 to-teal-600",
-  "from-violet-500 to-purple-600",
-  "from-amber-500 to-orange-500",
+  "from-emerald-500 to-teal-600",
+  "from-emerald-500 to-teal-600",
 ];
 
 function pickQuestions(
