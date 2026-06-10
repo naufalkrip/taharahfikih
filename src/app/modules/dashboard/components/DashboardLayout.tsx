@@ -101,42 +101,6 @@ export function DashboardLayout() {
         })}
       </nav>
 
-      {/* Toggles */}
-      <div className="px-3 py-3 border-t border-border">
-        {mounted && (
-          <div className="flex items-center justify-center gap-2">
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className={cn(
-                "p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-200",
-                collapsed ? "mx-auto" : ""
-              )}
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-            {!collapsed && (
-              <div
-                onClick={() => setLang(lang === "id" ? "en" : "id")}
-                className="flex items-center cursor-pointer select-none flex-1 justify-center"
-                aria-label="Ganti Bahasa"
-              >
-                <div className="relative h-6 w-14 rounded-full bg-muted transition-colors">
-                  <div
-                    className={cn(
-                      "absolute top-0.5 flex h-5 w-7 items-center justify-center rounded-full bg-white shadow-sm text-[10px] font-semibold transition-all duration-200",
-                      lang === "id" ? "left-0.5 text-emerald-600" : "left-[calc(100%-1.875rem)] text-blue-600"
-                    )}
-                  >
-                    {lang === "id" ? "Idn" : "Eng"}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
       <div className="px-3 py-4 border-t border-border">
         <button
           onClick={handleLogout}
@@ -197,20 +161,24 @@ export function DashboardLayout() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header */}
-        <header className="md:hidden flex items-center gap-3 px-4 h-14 border-b border-border bg-card">
+        {/* Header */}
+        <header className="flex items-center gap-3 px-4 h-14 border-b border-border bg-card">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2 flex-1">
+          <div className="hidden md:flex items-center gap-2 flex-1">
+            <Droplets className="w-5 h-5 text-emerald-600" />
+            <span className="font-heading font-bold text-sm">Dashboard</span>
+          </div>
+          <div className="md:hidden flex items-center gap-2 flex-1">
             <Droplets className="w-5 h-5 text-emerald-600" />
             <span className="font-heading font-bold text-sm">Dashboard</span>
           </div>
           {mounted && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
