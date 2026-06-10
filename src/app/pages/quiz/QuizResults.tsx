@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link, useSearchParams } from "react-router";
 import { ChevronLeft, BrainCircuit } from "lucide-react";
 import { motion } from "motion/react";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { useQuizHistory } from "../../hooks/useQuizHistory";
 import { ResultCard } from "../../components/quiz/ResultCard";
 import { ShareModal } from "../../components/quiz/ShareModal";
@@ -19,6 +20,7 @@ interface ResultState {
 }
 
 export function QuizResults() {
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -60,15 +62,15 @@ export function QuizResults() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md mx-auto px-4">
           <BrainCircuit className="w-12 h-12 text-muted-foreground mx-auto opacity-50" />
-          <h2 className="text-xl font-bold text-foreground">Belum Ada Hasil Quiz</h2>
+          <h2 className="text-xl font-bold text-foreground">{t("quizResults.emptyTitle")}</h2>
           <p className="text-sm text-muted-foreground">
-            Selesaikan quiz terlebih dahulu untuk melihat hasil.
+            {t("quizResults.emptyDesc")}
           </p>
           <Link
             to="/quiz"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-medium shadow-lg"
           >
-            Mulai Quiz
+            {t("quizResults.startQuiz")}
           </Link>
         </div>
       </div>
@@ -85,7 +87,7 @@ export function QuizResults() {
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-            Kembali ke Quiz
+            {t("quizResults.back")}
           </Link>
 
           {/* Results Header */}
@@ -94,7 +96,7 @@ export function QuizResults() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center space-y-2"
           >
-            <h1 className="text-foreground">Hasil Quiz</h1>
+            <h1 className="text-foreground">{t("quizResults.title")}</h1>
             <p className="text-muted-foreground text-sm sm:text-base">
               {topicTitle}
             </p>
@@ -116,19 +118,10 @@ export function QuizResults() {
             <ResultCharts
               correct={correct}
               incorrect={total - correct}
-              topicStats={currentResult.perTopic.map((t) => ({
-                topic: t.topic,
-                title:
-                  t.topic === "wudhu"
-                    ? "Wudhu"
-                    : t.topic === "ghusl"
-                    ? "Mandi Wajib"
-                    : t.topic === "tayammum"
-                    ? "Tayammum"
-                    : t.topic === "najis"
-                    ? "Najis"
-                    : t.topic,
-                percentage: t.percentage,
+              topicStats={currentResult.perTopic.map((pt) => ({
+                topic: pt.topic,
+                title: t("topic." + pt.topic),
+                percentage: pt.percentage,
               }))}
             />
           )}

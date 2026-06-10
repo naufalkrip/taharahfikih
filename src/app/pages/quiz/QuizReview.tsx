@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { ArrowLeft, CheckCircle2, XCircle, RotateCcw, ChevronLeft } from "lucide-react";
 import { motion } from "motion/react";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { useQuizHistory } from "../../hooks/useQuizHistory";
 import { cn } from "../../components/ui/utils";
 import type { QuizAttemptDetail } from "../../hooks/useQuizHistory";
 import type { QuizHistoryItem } from "../../hooks/useQuizHistory";
 
 export function QuizReview() {
+  const { t } = useLanguage();
   const { attemptId } = useParams<{ attemptId: string }>();
   const navigate = useNavigate();
   const { history, getAttemptDetail } = useQuizHistory();
@@ -27,15 +29,15 @@ export function QuizReview() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md mx-auto px-4">
           <XCircle className="w-12 h-12 text-muted-foreground mx-auto opacity-50" />
-          <h2 className="text-xl font-bold text-foreground">Detail Tidak Ditemukan</h2>
+          <h2 className="text-xl font-bold text-foreground">{t("quizReview.notFound")}</h2>
           <p className="text-sm text-muted-foreground">
-            Hasil quiz tidak tersedia atau sudah dihapus.
+            {t("quizReview.notFoundDesc")}
           </p>
           <Link
             to="/quiz"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-medium shadow-lg"
           >
-            Kembali ke Quiz
+            {t("quizReview.backToQuiz")}
           </Link>
         </div>
       </div>
@@ -56,7 +58,7 @@ export function QuizReview() {
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-            Kembali ke Quiz
+            {t("quizReview.backToQuiz")}
           </Link>
 
           {/* Header */}
@@ -67,7 +69,7 @@ export function QuizReview() {
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-lg font-bold text-foreground">Detail Hasil Quiz</h1>
+                <h1 className="text-lg font-bold text-foreground">{t("quizReview.title")}</h1>
                 <p className="text-sm text-muted-foreground mt-1">{session.topicTitle}</p>
               </div>
               <div className="text-right">
@@ -81,7 +83,7 @@ export function QuizReview() {
                   {session.percentage}%
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {correctCount}/{session.total} benar
+                  {t("quizReview.correct").replace("{count}", `${correctCount}/${session.total}`)}
                 </p>
               </div>
             </div>
@@ -91,13 +93,13 @@ export function QuizReview() {
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-medium hover:shadow-lg transition-all duration-200"
             >
               <RotateCcw className="w-4 h-4" />
-              Ulangi Quiz
+              {t("quizReview.retry")}
             </button>
           </motion.div>
 
           {/* Questions */}
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold text-foreground">Jawaban</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t("quizReview.answers")}</h2>
             {detail.questions.map((q, i) => {
               const userAnswer = detail.answers[q.id];
               const isCorrect = userAnswer === q.correctIndex;
@@ -148,7 +150,7 @@ export function QuizReview() {
                       {!isCorrect && (
                         <div className="mt-3 pt-3 border-t border-border/50">
                           <p className="text-xs text-muted-foreground">
-                            <span className="font-medium text-foreground">Penjelasan:</span>{" "}
+                            <span className="font-medium text-foreground">{t("quizReview.explanation")}</span>{" "}
                             {q.explanation}
                           </p>
                         </div>
@@ -167,7 +169,7 @@ export function QuizReview() {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-muted/50 transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
-              Kembali ke Hasil
+              {t("quizReview.backToResults")}
             </button>
           </div>
         </div>

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { Loader2, User, Lock, Eye, EyeOff, AlertCircle, Droplets, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
+import { useLanguage } from "../../../contexts/LanguageContext";
 import { registerUser } from "../services/auth.service";
 
 export function Register() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -17,17 +19,17 @@ export function Register() {
     e.preventDefault();
     setError("");
 
-    if (!username.trim()) { setError("Username wajib diisi"); return; }
-    if (username.trim().length < 3) { setError("Username minimal 3 karakter"); return; }
-    if (password.length < 6) { setError("Password minimal 6 karakter"); return; }
-    if (password !== confirm) { setError("Password dan konfirmasi tidak cocok"); return; }
+    if (!username.trim()) { setError(t("auth.register.validation.usernameRequired")); return; }
+    if (username.trim().length < 3) { setError(t("auth.register.validation.usernameMin")); return; }
+    if (password.length < 6) { setError(t("auth.register.validation.passwordMin")); return; }
+    if (password !== confirm) { setError(t("auth.register.validation.passwordMatch")); return; }
 
     setLoading(true);
     try {
       await registerUser(username, password);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Gagal mendaftar");
+      setError(err.message || t("auth.register.error"));
     } finally {
       setLoading(false);
     }
@@ -45,9 +47,9 @@ export function Register() {
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-sm mb-3">
               <Droplets className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-lg font-bold text-foreground">Daftar Guru</h1>
+            <h1 className="text-lg font-bold text-foreground">{t("auth.register.title")}</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Buat akun untuk mulai membuat quiz
+              {t("auth.register.subtitle")}
             </p>
           </div>
 
@@ -55,13 +57,13 @@ export function Register() {
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">
                 <User className="w-3.5 h-3.5 inline mr-1" />
-                Username
+                {t("auth.register.username")}
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Buat username"
+                placeholder={t("auth.register.usernamePlaceholder")}
                 autoComplete="username"
                 required
                 className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
@@ -71,14 +73,14 @@ export function Register() {
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">
                 <Lock className="w-3.5 h-3.5 inline mr-1" />
-                Password
+                {t("auth.register.password")}
               </label>
               <div className="relative">
                 <input
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Buat password (min 6 karakter)"
+                  placeholder={t("auth.register.passwordPlaceholder")}
                   autoComplete="new-password"
                   required
                   className="w-full pr-10 pl-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
@@ -96,13 +98,13 @@ export function Register() {
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">
                 <Lock className="w-3.5 h-3.5 inline mr-1" />
-                Konfirmasi Password
+                {t("auth.register.confirmPassword")}
               </label>
               <input
                 type={showPw ? "text" : "password"}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                placeholder="Ulangi password"
+                placeholder={t("auth.register.confirmPlaceholder")}
                 autoComplete="new-password"
                 required
                 className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
@@ -129,7 +131,7 @@ export function Register() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  Daftar
+                  {t("auth.register.submit")}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -138,9 +140,9 @@ export function Register() {
 
           <div className="mt-5 pt-4 border-t border-border text-center">
             <p className="text-xs text-muted-foreground">
-              Sudah punya akun?{" "}
+              {t("auth.register.prompt")}{" "}
               <Link to="/auth/login" className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
-                Masuk
+                {t("auth.register.loginLink")}
               </Link>
             </p>
           </div>

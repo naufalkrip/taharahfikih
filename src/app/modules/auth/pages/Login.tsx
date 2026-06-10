@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { Loader2, User, Lock, Eye, EyeOff, AlertCircle, Droplets } from "lucide-react";
 import { motion } from "motion/react";
+import { useLanguage } from "../../../contexts/LanguageContext";
 import { loginUser } from "../services/auth.service";
 
 export function Login() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +23,7 @@ export function Login() {
       await loginUser(username, password);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Login gagal");
+      setError(err.message || t("auth.login.error"));
     } finally {
       setLoading(false);
     }
@@ -39,9 +41,9 @@ export function Login() {
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 shadow-sm mb-3">
               <Droplets className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-lg font-bold text-foreground">Masuk sebagai Guru</h1>
+            <h1 className="text-lg font-bold text-foreground">{t("auth.login.title")}</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Masuk untuk mengelola quiz
+              {t("auth.login.subtitle")}
             </p>
           </div>
 
@@ -49,13 +51,13 @@ export function Login() {
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">
                 <User className="w-3.5 h-3.5 inline mr-1" />
-                Username
+                {t("auth.login.username")}
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Masukkan username"
+                placeholder={t("auth.login.usernamePlaceholder")}
                 autoComplete="username"
                 required
                 className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
@@ -65,14 +67,14 @@ export function Login() {
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">
                 <Lock className="w-3.5 h-3.5 inline mr-1" />
-                Password
+                {t("auth.login.password")}
               </label>
               <div className="relative">
                 <input
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Masukkan password"
+                  placeholder={t("auth.login.passwordPlaceholder")}
                   autoComplete="current-password"
                   required
                   className="w-full pr-10 pl-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
@@ -106,16 +108,16 @@ export function Login() {
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                "Masuk"
+                t("auth.login.submit")
               )}
             </button>
           </form>
 
           <div className="mt-5 pt-4 border-t border-border text-center">
             <p className="text-xs text-muted-foreground">
-              Belum punya akun?{" "}
+              {t("auth.login.prompt")}{" "}
               <Link to="/auth/register" className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
-                Daftar
+                {t("auth.login.registerLink")}
               </Link>
             </p>
           </div>

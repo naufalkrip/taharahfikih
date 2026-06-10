@@ -8,12 +8,14 @@ import {
   Share2,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { ScrollReveal, FadeIn } from "../../components/shared";
 import { ShareLinkModal } from "../../components/quiz/ShareLinkModal";
 import { topicInfo } from "../../data/quiz-questions";
 import { useQuizHistory } from "../../hooks/useQuizHistory";
 
 export function QuizHub() {
+  const { t } = useLanguage();
   const { getOverallPercentage, getTopicStats } = useQuizHistory();
   const overall = getOverallPercentage();
   const topicStats = getTopicStats();
@@ -46,10 +48,9 @@ export function QuizHub() {
                   <img src="/assets/quiz.png" alt="Quiz" className="w-9 h-9 object-contain" />
                 </div>
               </motion.div>
-              <h1 className="text-foreground">Quiz Interaktif</h1>
+              <h1 className="text-foreground">{t("quiz.title")}</h1>
               <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Uji pemahaman Anda tentang fikih taharah melalui quiz interaktif.
-                Pilih materi yang ingin diuji.
+                {t("quiz.subtitle")}
               </p>
             </div>
           </FadeIn>
@@ -69,10 +70,10 @@ export function QuizHub() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Trophy className="w-5 h-5" />
-                    <h3 className="text-lg font-bold">Nilai Keseluruhan</h3>
+                    <h3 className="text-lg font-bold">{t("quiz.overallScore")}</h3>
                   </div>
                   <p className="text-sm text-white/80 leading-relaxed">
-                    Rata-rata dari semua quiz yang telah dikerjakan
+                    {t("quiz.overallDesc")}
                   </p>
                 </div>
               </div>
@@ -91,14 +92,14 @@ export function QuizHub() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-heading text-lg font-bold mb-1">
-                    Semua Materi
+                    {t("quiz.allMaterial")}
                   </h3>
                   <p className="text-sm text-white/80 leading-relaxed">
-                    Quiz gabungan dari seluruh materi (Wudhu, Mandi Wajib, Tayammum, Najis)
+                    {t("quiz.allMaterialDesc")}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-white/60 group-hover:text-white transition-colors">
-                  <span>Mulai</span>
+                  <span>{t("quiz.start")}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -109,9 +110,9 @@ export function QuizHub() {
           <div>
             <ScrollReveal>
               <div className="text-center mb-6">
-                <h2 className="text-foreground">Pilih Per Materi</h2>
+                <h2 className="text-foreground">{t("quiz.perMaterial")}</h2>
                 <p className="text-muted-foreground text-sm sm:text-base mt-2">
-                  Atau pilih quiz per materi tertentu
+                  {t("quiz.perMaterialDesc")}
                 </p>
               </div>
             </ScrollReveal>
@@ -126,11 +127,11 @@ export function QuizHub() {
                           <div
                             className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${topic.gradient} shadow-sm flex items-center justify-center`}
                           >
-                            <img src={topic.imageSrc} alt={topic.title} className="w-7 h-7 object-contain" />
+                            <img src={topic.imageSrc} alt={t("topic." + topic.key)} className="w-7 h-7 object-contain" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-heading text-lg font-bold text-foreground mb-1">
-                              {topic.title}
+                              {t("topic." + topic.key)}
                             </h3>
                             <div className="flex items-center gap-2">
                               {topic.percentage !== undefined ? (
@@ -148,21 +149,21 @@ export function QuizHub() {
                                 </>
                               ) : (
                                 <span className="text-xs text-muted-foreground">
-                                  Belum dikerjakan
+                                  {t("quiz.notStarted")}
                                 </span>
                               )}
                             </div>
                             <div className="mt-3 flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <span>Mulai Quiz</span>
+                              <span>{t("quiz.startQuiz")}</span>
                               <ArrowRight className="w-3.5 h-3.5" />
                             </div>
                           </div>
                         </div>
                       </Link>
                       <button
-                        onClick={() => setShareTopic({ key: topic.key, title: topic.title })}
+                        onClick={() => setShareTopic({ key: topic.key, title: t("topic." + topic.key) })}
                         className="absolute top-3 right-3 p-2 rounded-lg text-muted-foreground/60 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all opacity-0 group-hover:opacity-100"
-                        title="Bagikan"
+                        title={t("quiz.share")}
                       >
                         <Share2 className="w-4 h-4" />
                       </button>
