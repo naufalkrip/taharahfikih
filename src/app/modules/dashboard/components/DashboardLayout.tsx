@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import {
   LayoutDashboard,
@@ -9,9 +9,13 @@ import {
   ChevronLeft,
   Menu,
   Droplets,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../../components/ui/utils";
+import { useTheme } from "next-themes";
+import { useLanguage } from "../../../contexts/LanguageContext";
 import { logoutUser } from "../../auth/services/auth.service";
 import {
   Tooltip,
@@ -30,8 +34,13 @@ const navItems = [
 export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+  const { lang, setLang } = useLanguage();
+  const [mounted, setMounted] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const handleLogout = () => {
     logoutUser();
@@ -91,6 +100,42 @@ export function DashboardLayout() {
           );
         })}
       </nav>
+
+      {/* Toggles */}
+      <div className="px-3 py-3 border-t border-border">
+        {mounted && (
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className={cn(
+                "p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-200",
+                collapsed ? "mx-auto" : ""
+              )}
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            {!collapsed && (
+              <div
+                onClick={() => setLang(lang === "id" ? "en" : "id")}
+                className="flex items-center cursor-pointer select-none flex-1 justify-center"
+                aria-label="Ganti Bahasa"
+              >
+                <div className="relative h-6 w-14 rounded-full bg-muted transition-colors">
+                  <div
+                    className={cn(
+                      "absolute top-0.5 flex h-5 w-7 items-center justify-center rounded-full bg-white shadow-sm text-[10px] font-semibold transition-all duration-200",
+                      lang === "id" ? "left-0.5 text-emerald-600" : "left-[calc(100%-1.875rem)] text-blue-600"
+                    )}
+                  >
+                    {lang === "id" ? "Idn" : "Eng"}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="px-3 py-4 border-t border-border">
         <button
@@ -160,10 +205,36 @@ export function DashboardLayout() {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <Droplets className="w-5 h-5 text-emerald-600" />
             <span className="font-heading font-bold text-sm">Dashboard</span>
           </div>
+          {mounted && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+              <div
+                onClick={() => setLang(lang === "id" ? "en" : "id")}
+                className="flex items-center cursor-pointer select-none"
+              >
+                <div className="relative h-6 w-14 rounded-full bg-muted transition-colors">
+                  <div
+                    className={cn(
+                      "absolute top-0.5 flex h-5 w-7 items-center justify-center rounded-full bg-white shadow-sm text-[10px] font-semibold transition-all duration-200",
+                      lang === "id" ? "left-0.5 text-emerald-600" : "left-[calc(100%-1.875rem)] text-blue-600"
+                    )}
+                  >
+                    {lang === "id" ? "Idn" : "Eng"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
