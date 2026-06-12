@@ -10,6 +10,7 @@ import {
   ScrollReveal,
   KasusKhususSection,
   RujukanSection,
+  NiatInline,
 } from "../components/shared";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -99,7 +100,15 @@ export function Tayammum() {
               title={lang === "en" ? item.titleEn : item.title}
               description={lang === "en" ? item.descriptionEn : item.description}
               color="amber"
-            />
+            >
+              {index === 0 && (
+                <NiatInline
+                  arabic="نَوَيْتُ التَّيَمُّمَ لِاسْتِبَاحَةِ الصَّلَاةِ فَرْضًا لِلَّهِ تَعَالَى"
+                  translation="Aku niat tayammum untuk memperbolehkan shalat, fardhu karena Allah Ta'ala."
+                  audioSrc="/assets/niat tayamum.aac"
+                />
+              )}
+            </NumberedStep>
           ))}
         </div>
       </SectionCard>

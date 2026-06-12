@@ -11,6 +11,7 @@ import {
   ScrollReveal,
   KasusKhususSection,
   RujukanSection,
+  NiatInline,
 } from "../components/shared";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -87,7 +88,15 @@ export function Wudhu() {
               title={lang === "en" ? item.titleEn : item.title}
               description={lang === "en" ? item.descriptionEn : item.description}
               color="blue"
-            />
+            >
+              {index === 0 && (
+                <NiatInline
+                  arabic="نَوَيْتُ الْوُضُوءَ لِرَفْعِ الْحَدَثِ الْأَصْغَرِ فَرْضًا لِلَّهِ تَعَالَى"
+                  translation="Aku niat wudhu untuk menghilangkan hadas kecil, fardhu karena Allah Ta'ala."
+                  audioSrc="/assets/niat wudhu.aac"
+                />
+              )}
+            </NumberedStep>
           ))}
         </div>
       </SectionCard>

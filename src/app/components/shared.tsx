@@ -1,6 +1,6 @@
-import { type ReactNode, type ElementType, useState } from "react";
+import { type ReactNode, type ElementType, useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Play, Pause } from "lucide-react";
 import { cn } from "./ui/utils";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -160,9 +160,10 @@ interface NumberedStepProps {
   title: string;
   description?: string;
   color?: "emerald" | "blue" | "amber";
+  children?: ReactNode;
 }
 
-export function NumberedStep({ number, title, description, color = "emerald" }: NumberedStepProps) {
+export function NumberedStep({ number, title, description, color = "emerald", children }: NumberedStepProps) {
   const colors = {
     emerald: "bg-emerald-600 text-white",
     blue: "bg-blue-600 text-white",
@@ -179,6 +180,7 @@ export function NumberedStep({ number, title, description, color = "emerald" }: 
         {description && (
           <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
         )}
+        {children}
       </div>
     </div>
   );
@@ -451,5 +453,71 @@ export function RujukanSection({ rujukan }: { rujukan: RujukanItem[] }) {
         </div>
       </div>
     </ScrollReveal>
+  );
+}
+
+interface NiatInlineProps {
+  arabic: string;
+  translation: string;
+  audioSrc: string;
+}
+
+export function NiatInline({ arabic, translation, audioSrc }: NiatInlineProps) {
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const togglePlay = () => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(audioSrc);
+      audioRef.current.onended = () => setPlaying(false);
+    }
+
+    if (playing) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setPlaying(false);
+    } else {
+      audioRef.current.play();
+      setPlaying(true);
+    }
+  };
+
+  return (
+    <div className="mt-4 pt-4 border-t border-purple-200 dark:border-purple-800">
+      <p className="text-center leading-loose text-lg sm:text-xl text-foreground font-arabic" dir="rtl">
+        {arabic}
+      </p>
+      <p className="text-center text-xs sm:text-sm text-muted-foreground italic mt-2">
+        "{translation}"
+      </p>
+      <div className="flex justify-center mt-4">
+        <motion.button
+          onClick={togglePlay}
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.9 }}
+          className="relative w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 text-white shadow-md hover:shadow-lg transition-shadow duration-300 flex items-center justify-center"
+        >
+          <motion.span
+            className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/30 to-pink-600/30"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {playing ? (
+            <Pause className="w-5 h-5 relative z-10" />
+          ) : (
+            <Play className="w-5 h-5 ml-0.5 relative z-10" />
+          )}
+        </motion.button>
+      </div>
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   ScrollReveal,
   KasusKhususSection,
   RujukanSection,
+  NiatInline,
 } from "../components/shared";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -91,7 +92,15 @@ export function Ghusl() {
               number={index + 1}
               title={lang === "en" ? item.titleEn : item.title}
               description={lang === "en" ? item.descriptionEn : item.description}
-            />
+            >
+              {index === 0 && (
+                <NiatInline
+                  arabic="نَوَيْتُ الْغُسْلَ لِرَفْعِ الْجَنَابَةِ فَرْضًا لِلَّهِ تَعَالَى"
+                  translation="Aku niat mandi untuk menghilangkan janabah, fardhu karena Allah Ta'ala."
+                  audioSrc="/assets/niat mandi.aac"
+                />
+              )}
+            </NumberedStep>
           ))}
         </div>
       </SectionCard>
